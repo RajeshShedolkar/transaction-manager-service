@@ -1,0 +1,20 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: transaction-postgres
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: transactiondb
+      POSTGRES_USER: transaction_service
+      POSTGRES_PASSWORD: pass123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

@@ -1,0 +1,9 @@
+package repository
+
+import "transaction-manager/internal/domain"
+
+type TransactionRepository interface {
+	Save(tx *domain.Transaction) error
+	FindByID(id string) (*domain.Transaction, error)
+	UpdateStatus(id string, status domain.TransactionStatus) error
+}
