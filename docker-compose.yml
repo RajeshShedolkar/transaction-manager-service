@@ -1,12 +1,7 @@
-version: "3.9"
-
 services:
   postgres:
     image: postgres:16
-    container_name: transaction-postgres
     restart: always
-    env_file:
-      - .env
     environment:
       POSTGRES_DB: transactiondb
       POSTGRES_USER: transaction_service
@@ -15,6 +10,11 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U transaction_service -d transactiondb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
