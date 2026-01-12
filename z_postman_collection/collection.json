@@ -1,0 +1,92 @@
+{
+    "info": {
+        "name": "Transaction Manager Service",
+        "description": "API tests for Transaction Manager microservice",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080"
+        },
+        {
+            "key": "transactionId",
+            "value": ""
+        }
+    ],
+    "item": [
+        {
+            "name": "Create Immediate Transaction (IMPS)",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/transactions",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "transactions"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"paymentType\": \"IMMEDIATE\",\n  \"paymentMode\": \"IMPS\",\n  \"amount\": 2000,\n  \"currency\": \"INR\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Create NEFT Transaction",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/transactions",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "transactions"
+                    ]
+                },
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n  \"paymentType\": \"NEFT\",\n  \"paymentMode\": \"NEFT\",\n  \"amount\": 3000,\n  \"currency\": \"INR\"\n}"
+                }
+            }
+        },
+        {
+            "name": "Get Transaction By ID",
+            "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                    "raw": "{{baseUrl}}/api/v1/transactions/{{transactionId}}",
+                    "host": [
+                        "{{baseUrl}}"
+                    ],
+                    "path": [
+                        "api",
+                        "v1",
+                        "transactions",
+                        "{{transactionId}}"
+                    ]
+                }
+            }
+        }
+    ]
+}

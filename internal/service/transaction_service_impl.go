@@ -82,3 +82,75 @@ func (s *TransactionServiceImpl) GetTransaction(id string) (*domain.Transaction,
 	return tx, ledger, nil
 }
 
+func (s *TransactionServiceImpl) CreateNEFTTransaction(tx *domain.Transaction) error {
+
+	tx.ID = uuid.New().String()
+	tx.Status = domain.StatusInitiated
+
+	// Save initial transaction
+	err := s.txRepo.Save(tx)
+	if err != nil {
+		return err
+	}
+
+	// Move to PENDING
+	err = state.Transition(tx, domain.StatusPending)
+	if err != nil {
+		return err
+	}
+
+	err = s.txRepo.UpdateStatus(tx.ID, tx.Status)
+	if err != nil {
+		return err
+	}
+
+	// Ledger entry for debit
+	ledger := &domain.LedgerEntry{
+		ID:            uuid.New().String(),
+		TransactionID: tx.ID,
+		EntryType:     domain.LedgerDebit,
+		Amount:        tx.Amount,
+		Source:        "API",
+	}
+
+	return s.ledgerRepo.Append(ledger)
+}
+
+func (s *TransactionServiceImpl) HandleNEFTSettlement(txID string, status string) error {
+
+	tx, _, err := s.GetTransaction(txID)
+	if err != nil {
+		return err
+	}
+
+	var newState domain.TransactionStatus
+	var ledgerType domain.LedgerEntryType
+
+	if status == "COMPLETED" {
+		newState = domain.StatusCompleted
+		ledgerType = domain.LedgerSettlement
+	} else {
+		newState = domain.StatusFailed
+		ledgerType = domain.LedgerReversal
+	}
+
+	err = state.Transition(tx, newState)
+	if err != nil {
+		return err
+	}
+
+	err = s.txRepo.UpdateStatus(tx.ID, tx.Status)
+	if err != nil {
+		return err
+	}
+
+	ledger := &domain.LedgerEntry{
+		ID:            uuid.New().String(),
+		TransactionID: tx.ID,
+		EntryType:     ledgerType,
+		Amount:        tx.Amount,
+		Source:        "EVENT",
+	}
+
+	return s.ledgerRepo.Append(ledger)
+}

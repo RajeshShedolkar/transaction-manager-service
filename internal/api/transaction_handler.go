@@ -31,8 +31,13 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		Amount:      req.Amount,
 		Currency:    req.Currency,
 	}
-
-	err := h.service.CreateImmediateTransaction(tx)
+	var err error
+	//err := h.service.CreateImmediateTransaction(tx)
+	if req.PaymentMode == "NEFT" {
+		err = h.service.CreateNEFTTransaction(tx)
+	} else {
+		err = h.service.CreateImmediateTransaction(tx)
+	}
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -77,4 +82,3 @@ func (h *TransactionHandler) GetTransaction(c *gin.Context) {
 
 	c.JSON(http.StatusOK, resp)
 }
-
