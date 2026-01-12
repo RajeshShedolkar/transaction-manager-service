@@ -66,3 +66,19 @@ func (s *TransactionServiceImpl) CreateImmediateTransaction(tx *domain.Transacti
 
 	return nil
 }
+
+func (s *TransactionServiceImpl) GetTransaction(id string) (*domain.Transaction, []domain.LedgerEntry, error) {
+
+	tx, err := s.txRepo.FindByID(id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ledger, err := s.ledgerRepo.FindByTransactionID(id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return tx, ledger, nil
+}
+

@@ -24,3 +24,25 @@ func (r *PgxLedgerRepo) Append(entry *domain.LedgerEntry) error {
 	)
 	return err
 }
+
+func (r *PgxLedgerRepo) FindByTransactionID(txID string) ([]domain.LedgerEntry, error) {
+
+	rows, err := r.db.Query(context.Background(),
+		`SELECT id,transaction_id,entry_type,amount,source 
+		 FROM ledger_entries WHERE transaction_id=$1`, txID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var entries []domain.LedgerEntry
+	for rows.Next() {
+		var e domain.LedgerEntry
+		err := rows.Scan(&e.ID, &e.TransactionID, &e.EntryType, &e.Amount, &e.Source)
+		if err != nil {
+			return nil, err
+		}
+		entries = append(entries, e)
+	}
+	return entries, nil
+}

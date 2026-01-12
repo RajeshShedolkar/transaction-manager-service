@@ -33,6 +33,7 @@ func main() {
 
 	r := gin.Default()
 	r.POST("/api/v1/transactions", handler.CreateTransaction)
+	r.GET("/api/v1/transactions/:id", handler.GetTransaction)
 
 	log.Println("Transaction Manager API started on :8080")
 	r.Run(":8080")

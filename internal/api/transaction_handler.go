@@ -46,3 +46,35 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 
 	c.JSON(http.StatusOK, resp)
 }
+
+func (h *TransactionHandler) GetTransaction(c *gin.Context) {
+
+	id := c.Param("id")
+
+	tx, ledger, err := h.service.GetTransaction(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
+		return
+	}
+
+	var ledgerResp []LedgerEntryResponse
+	for _, l := range ledger {
+		ledgerResp = append(ledgerResp, LedgerEntryResponse{
+			EntryType: string(l.EntryType),
+			Amount:    l.Amount,
+			Source:    l.Source,
+		})
+	}
+
+	resp := GetTransactionResponse{
+		TransactionID: tx.ID,
+		Status:        string(tx.Status),
+		PaymentMode:   tx.PaymentMode,
+		Amount:        tx.Amount,
+		Currency:      tx.Currency,
+		Ledger:        ledgerResp,
+	}
+
+	c.JSON(http.StatusOK, resp)
+}
+
