@@ -1,0 +1,169 @@
+{
+	"info": {
+		"_postman_id": "6983c3cd-2913-4e48-9747-626de5945c0c",
+		"name": "Transaction Manager Service",
+		"description": "API tests for Transaction Manager microservice",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29446019"
+	},
+	"item": [
+		{
+			"name": "Create Immediate Transaction (IMPS)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response status code is 200, Kuch toh print ho\", function () {\r",
+							"    pm.expect(pm.response.code).to.eql(200);\r",
+							"    console.log(\"Kuch toh print ho\")\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.environment.set(\"transactionId\", jsonData.transactionId);\r",
+							"    pm.environment.set(\"status\", jsonData);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response time is less than 200ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+							"});\r",
+							"\r",
+							"// var responseData = pm.response.json();\r",
+							"\r",
+							"// // Check if response code is 200 and set transactionId\r",
+							"// pm.test(\"Response code is 200 and transactionId is set\", function () {\r",
+							"//     pm.expect(pm.response.code).to.eql(200);\r",
+							"//     if (pm.response.code === 200) {\r",
+							"//         pm.environment.set(\"transactionId\", responseData.transactionId);\r",
+							"//     }\r",
+							"// });"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"paymentType\": \"IMMEDIATE\",\n  \"paymentMode\": \"IMPS\",\n  \"amount\": 2000,\n  \"currency\": \"INR\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/transactions",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create NEFT Transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 200) {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.environment.set(\"transactionId\", jsonData.transactionId);\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"paymentType\": \"NEFT\",\n  \"paymentMode\": \"NEFT\",\n  \"amount\": 3000,\n  \"currency\": \"INR\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/transactions",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Transaction By ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/v1/transactions/{{transactionId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"transactions",
+						"{{transactionId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "transactionId",
+			"value": ""
+		}
+	]
+}
