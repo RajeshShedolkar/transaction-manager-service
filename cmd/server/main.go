@@ -10,10 +10,21 @@ import (
 	"transaction-manager/internal/config"
 	"transaction-manager/internal/repository"
 	"transaction-manager/internal/service"
+	"transaction-manager/pkg/logger"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 
+	logger.Init(config.ENV)
+	defer logger.Log.Sync()
+	logger.Log.Info("service started")
+
+	err := godotenv.Load() // loads .env into os.Environ
+	if err != nil {
+		log.Println("No .env file found, using system env")
+	}
 	dsn := os.Getenv("DB_DSN")
 	if dsn == "" {
 		log.Fatal("DB_DSN not set")

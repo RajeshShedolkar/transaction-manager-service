@@ -5,10 +5,12 @@ import (
 	//"time"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 
 	"transaction-manager/internal/domain"
 	"transaction-manager/internal/repository"
 	"transaction-manager/internal/state"
+	"transaction-manager/pkg/logger"
 )
 
 type TransactionServiceImpl struct {
@@ -29,24 +31,29 @@ func NewTransactionService(
 func (s *TransactionServiceImpl) CreateImmediateTransaction(tx *domain.Transaction) error {
 
 	// 1. Generate Transaction ID
+	logger.Log.Info("GENERATING_TRANSACTION_ID")
 	tx.ID = uuid.New().String()
 	tx.Status = domain.StatusInitiated
 
 	// 2. Persist transaction
+	logger.Log.Info("PERSISTING_TRANSACTION")
 	err := s.txRepo.Save(tx)
 	if err != nil {
+		logger.Log.Error("PERSISTING_TRANSACTION_FAILED", zap.Error(err))
 		return err
 	}
 
 	// 3. Transition to COMPLETED
 	err = state.Transition(tx, domain.StatusCompleted)
 	if err != nil {
+		logger.Log.Error("STATE_TRANSITION_FAILED", zap.Error(err))
 		return err
 	}
 
 	// 4. Update status in DB
 	err = s.txRepo.UpdateStatus(tx.ID, tx.Status)
 	if err != nil {
+		logger.Log.Error("UPDATING_TRANSACTION_STATUS_FAILED", zap.Error(err))
 		return err
 	}
 
@@ -61,9 +68,10 @@ func (s *TransactionServiceImpl) CreateImmediateTransaction(tx *domain.Transacti
 
 	err = s.ledgerRepo.Append(ledger)
 	if err != nil {
+		logger.Log.Error("APPENDING_LEDGER_ENTRY_FAILED", zap.Error(err))
 		return err
 	}
-
+	logger.Log.Info("IMMEDIATE_TRANSACTION_CREATED_SUCCESSFULLY", zap.String("transaction_id", tx.ID))
 	return nil
 }
 

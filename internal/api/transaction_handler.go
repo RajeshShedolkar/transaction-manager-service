@@ -4,9 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"transaction-manager/internal/domain"
 	"transaction-manager/internal/service"
+	"transaction-manager/pkg/logger"
 )
 
 type TransactionHandler struct {
@@ -18,13 +20,20 @@ func NewTransactionHandler(s service.TransactionService) *TransactionHandler {
 }
 
 func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
+	reqID := c.GetString("request_id")
 
+	log := logger.Log.With(
+		zap.String("service", "transaction-service"),
+		zap.String("flow", "CreateTransaction"),
+		zap.String("request_id", reqID),
+	)
+	log.Info("REQUEST_RECEIVED")
 	var req CreateTransactionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
-
+	log.Info("REQUEST_VALIDATED")
 	tx := &domain.Transaction{
 		PaymentType: req.PaymentType,
 		PaymentMode: req.PaymentMode,
@@ -33,12 +42,18 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	}
 	var err error
 	//err := h.service.CreateImmediateTransaction(tx)
+	log.Info("BUSINESS_LOGIC_STARTED")
+
 	if req.PaymentMode == "NEFT" {
 		err = h.service.CreateNEFTTransaction(tx)
 	} else {
 		err = h.service.CreateImmediateTransaction(tx)
 	}
 	if err != nil {
+		log.Error("BUSINESS_LOGIC_FAILED",
+			zap.String("reason", "rule_violation"),
+			zap.Error(err),
+		)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -48,7 +63,9 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		Status:        string(tx.Status),
 		Message:       "Transaction processed successfully",
 	}
-
+	log.Info("RESPONSE_SENT",
+		zap.Int("status", 201),
+	)
 	c.JSON(http.StatusOK, resp)
 }
 

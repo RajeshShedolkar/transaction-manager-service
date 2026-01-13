@@ -9,9 +9,14 @@ import (
 	"transaction-manager/internal/domain"
 	"transaction-manager/internal/repository"
 	"transaction-manager/internal/service"
+	"transaction-manager/pkg/logger"
 )
 
 func main() {
+	if err := logger.Init("dev"); err != nil {
+		panic("failed to initialize logger: " + err.Error())
+	}
+	defer logger.Log.Sync()
 
 	dsn := os.Getenv("DB_DSN")
 	if dsn == "" {
