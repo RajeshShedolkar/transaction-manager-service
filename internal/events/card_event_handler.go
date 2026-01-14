@@ -3,21 +3,30 @@ package events
 import (
 	"encoding/json"
 	"log"
+
+	"transaction-manager/internal/cardservice"
+	"transaction-manager/internal/domain"
 	"transaction-manager/internal/repository"
 )
 
-func HandleCardEvent(
+type EventTransactionHandler struct {
+	service cardservice.CardEventService
+}
+
+func NewEventTransactionHandler(s cardservice.CardEventService) *EventTransactionHandler {
+	return &EventTransactionHandler{service: s}
+}
+
+func (h *EventTransactionHandler) HandleCardEventIdempotent(
 	message []byte,
-	eventRepo repository.EventRepository,
+	eventRepo repository.PgxEventRepo,
 ) {
 
-	var event CardEvent
-	err := json.Unmarshal(message, &event)
-	if err != nil {
-		log.Println("Invalid event json:", err)
+	var event domain.CardEvent
+	if err := json.Unmarshal(message, &event); err != nil {
+		log.Println("Invalid JSON:", err)
 		return
 	}
-
 	processed, _ := eventRepo.IsProcessed(event.EventID)
 	if processed {
 		log.Println("Duplicate event ignored:", event.EventID)
@@ -26,8 +35,14 @@ func HandleCardEvent(
 
 	log.Println("Processing event:", event.EventID, event.EventType)
 
-	// STEP 12 will add business logic here
-	log.Println("Business handling skipped for STEP 11")
+	switch event.EventType {
+	case "CARD_AUTH":
+		h.service.HandleCardAuth(event)
+		// case "CARD_SETTLEMENT":
+		// 	handler.HandleCardSettlement(event.NetworkTxn)
+		// case "CARD_AUTH_RELEASE":
+		// 	handler.HandleCardRelease(event.NetworkTxn)
+	}
 
 	eventRepo.MarkProcessed(event.EventID, event.EventType)
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-func NewReader(brokers []string, topic, group string) *kafka.Reader {
+func NewKafkaReader(brokers []string, topic, group string) *kafka.Reader {
 	return kafka.NewReader(kafka.ReaderConfig{
 		Brokers: brokers,
 		Topic:   topic,

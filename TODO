@@ -1,3 +1,5 @@
 1. add user_id in the transaction tables to
 2. integrate account managment service 
 3. integrate the banking black box transaction process
+4. handle for CREDIT also to add complexity add interbank transaction
+5. in transaction table not handle which type of payment type CREDIT/DEBIT
