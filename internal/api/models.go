@@ -5,7 +5,7 @@ type CreateTransactionRequest struct {
 	SourceRefId      string `json:"sourceRefId"`      // account/card reference
 	DestinationRefId string `json:"destinationRefId"` // merchant/bank reference
 
-	PaymentType string `json:"paymentType"` // IMMEDIATE, NEFT, CARD
+	PaymentType string `json:"paymentType"` // SYNC, ASYNC, IMMEDIATE, DEFFERRED
 	PaymentMode string `json:"paymentMode"` // IMPS, UPI, NEFT, CARD
 
 	DcFlag   string `json:"dcFlag"` // D or C

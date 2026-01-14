@@ -10,7 +10,6 @@ import (
 	"transaction-manager/internal/domain"
 	"transaction-manager/internal/repository"
 	"transaction-manager/internal/state"
-	"transaction-manager/internal/utils"
 	"transaction-manager/pkg/logger"
 )
 
@@ -64,7 +63,7 @@ func (s *TransactionServiceImpl) CreateImmediateTransaction(tx *domain.Transacti
 		AccountRefId:  tx.SourceRefId,
 		TransactionID: tx.ID,
 		DcFlag:        tx.DcFlag,
-		EntryType:     utils.GetPaymentTypeViaAPI(tx.DcFlag),
+		EntryType:     domain.LedgerAuth,
 		Amount:        tx.Amount,
 		Source:        "API",
 	}
@@ -121,7 +120,7 @@ func (s *TransactionServiceImpl) CreateNEFTTransaction(tx *domain.Transaction) e
 		AccountRefId:  tx.SourceRefId,
 		TransactionID: tx.ID,
 		DcFlag:        tx.DcFlag,
-		EntryType:     utils.GetPaymentTypeViaAPI(tx.DcFlag),
+		EntryType:     domain.LedgerDebit,
 		Amount:        tx.Amount,
 		Source:        "API",
 	}
@@ -162,7 +161,7 @@ func (s *TransactionServiceImpl) HandleNEFTSettlement(txID string, status string
 		TransactionID: tx.ID,
 		AccountRefId:  tx.SourceRefId,
 		DcFlag:        tx.DcFlag,
-		EntryType:     string(ledgerType),
+		EntryType:     ledgerType,
 		Amount:        tx.Amount,
 		Source:        "EVENT",
 	}

@@ -6,10 +6,12 @@ const (
 	StatusInitiated  TransactionStatus = "INITIATED"
 	StatusPending    TransactionStatus = "PENDING"
 	StatusAuthorized TransactionStatus = "AUTHORIZED"
+	StatusProcessing TransactionStatus = "PROCESSING"
 	StatusCompleted  TransactionStatus = "COMPLETED"
 	StatusFailed     TransactionStatus = "FAILED"
 	StatusReleased   TransactionStatus = "RELEASED"
 	StatusTimedOut   TransactionStatus = "TIMED_OUT"
+	StatusRefunded   TransactionStatus = "REFUNDED"
 )
 
 type Transaction struct {
@@ -19,7 +21,7 @@ type Transaction struct {
 	SourceRefId      string
 	DestinationRefId string
 
-	PaymentType string // IMMEDIATE / NEFT / CARD
+	PaymentType string // SYNC / ASYNC / IMMEDIATE / DEFFERRED
 	PaymentMode string // IMPS / UPI / NEFT / CARD
 
 	Status TransactionStatus

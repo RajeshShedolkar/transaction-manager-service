@@ -10,3 +10,4 @@ func GetPaymentTypeViaAPI(dcFlag string) string {
 	}
 	return "CREDIT"
 }
+

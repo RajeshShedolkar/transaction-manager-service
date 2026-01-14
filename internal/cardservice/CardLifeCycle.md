@@ -125,7 +125,7 @@ sample request:
   "userRefId": "USR2001",
   "sourceRefId": "CARD9988",
   "destinationRefId": "MERCHANT112",
-  "paymentType": "CARD",
+  "paymentType": "DEEFERRED",
   "paymentMode": "CARD",
   "dcFlag": "D",
   "amount": 2500,

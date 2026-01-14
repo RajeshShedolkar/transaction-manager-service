@@ -33,10 +33,10 @@ docker exec -it kafka kafka-topics \
 
 Kafka Topics (Design)
 Topic	Purpose
-card-auth-events	CARD_AUTH
-card-settlement-events	CARD_SETTLEMENT
-card-release-events	CARD_AUTH_RELEASE
-neft-settlement-events	NEFT_SETTLEMENT
+card-auth-events	AUTH_SUCCESS, AUTH_FAILED
+card-settlement-events	SETTLEMENT_STARTED, DEBIT_CONFIRMED, CREDIT_CONFIRMED, SETTLEMENT_FAILED
+card-release-events	REFUND_PROCESSED, 
+neft-settlement-events	NEFT_SETTLEMENT_STARTED, NEFT_SETTLEMENT_DONE
 compensation-events	CREDIT_REVERSAL_*
 
 // To execute tests in go
