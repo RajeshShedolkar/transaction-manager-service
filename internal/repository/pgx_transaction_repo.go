@@ -61,11 +61,11 @@ func (r *PgxTransactionRepo) UpdateStatus(id string, status domain.TransactionSt
 
 func (r *PgxTransactionRepo) FindByNetworkTxnID(id string) (*domain.Transaction, error) {
 	row := r.db.QueryRow(context.Background(),
-		`SELECT id,payment_type,payment_mode,status,amount,currency 
+		`SELECT id,source_ref_id,destination_ref_id,payment_type,payment_mode,status,amount,currency 
 		 FROM transactions WHERE network_txn_id=$1`, id)
 
 	var tx domain.Transaction
-	err := row.Scan(&tx.ID, &tx.PaymentType, &tx.PaymentMode, &tx.Status, &tx.Amount, &tx.Currency)
+	err := row.Scan(&tx.ID, &tx.SourceRefId, &tx.DestinationRefId, &tx.PaymentType, &tx.PaymentMode, &tx.Status, &tx.Amount, &tx.Currency)
 	if err != nil {
 		return nil, err
 	}

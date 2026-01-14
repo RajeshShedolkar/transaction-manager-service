@@ -2,6 +2,7 @@ package cardservice
 
 import (
 	"errors"
+	"fmt"
 	"transaction-manager/internal/domain"
 	"transaction-manager/internal/repository"
 
@@ -29,6 +30,7 @@ func NewEventTransactionService(
 func (s *EventTransactionServiceImpl) HandleAuthSuccess(event domain.CardEvent) error {
 
 	tx := &domain.Transaction{
+		ID:               uuid.New().String(),
 		UserRefId:        event.UserRefId,
 		SourceRefId:      event.SourceRefId, //user accout id
 		DestinationRefId: event.DestinationRefId,
@@ -64,6 +66,20 @@ func (s *EventTransactionServiceImpl) HandleSettlementStarted(event domain.CardE
 
 	tx, err := s.txRepo.FindByNetworkTxnID(event.NetworkTxnId)
 	if err != nil {
+		return err
+	}
+	fmt.Println("Found transaction for settlement:", tx.SourceRefId)
+	ledger := &domain.LedgerEntry{
+		ID:            uuid.NewString(),
+		TransactionID: tx.ID,
+		AccountRefId:  tx.SourceRefId,
+		DcFlag:        "D",
+		EntryType:     domain.LedgerSettlement,
+		Amount:        tx.Amount,
+		Source:        "EVENT",
+	}
+
+	if err := s.ledgerRepo.Append(ledger); err != nil {
 		return err
 	}
 
