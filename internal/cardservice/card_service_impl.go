@@ -43,7 +43,7 @@ func (s *EventTransactionServiceImpl) HandleCardAuth(event domain.CardEvent) err
 	ledger := &domain.LedgerEntry{
 		ID:            uuid.New().String(),
 		TransactionID: tx.ID,
-		EntryType:     domain.LedgerAuth,
+		EntryType:     string(domain.LedgerAuth),
 		Amount:        tx.Amount,
 		Source:        "EVENT",
 	}

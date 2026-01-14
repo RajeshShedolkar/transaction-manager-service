@@ -14,7 +14,10 @@ const (
 type LedgerEntry struct {
 	ID            string
 	TransactionID string
-	EntryType     LedgerEntryType
+	AccountRefId  string
+	DcFlag        string // D or C
+	EntryType     string // AUTH, SETTLEMENT, RELEASE, REVERSAL, DEBIT, CREDIT
 	Amount        int64
-	Source        string // API / EVENT
+	Source        string // API, EVENT, SYSTEM
+
 }

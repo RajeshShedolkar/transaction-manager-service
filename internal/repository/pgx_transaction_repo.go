@@ -18,10 +18,22 @@ func NewPgxTransactionRepo(db *pgxpool.Pool) *PgxTransactionRepo {
 func (r *PgxTransactionRepo) Save(tx *domain.Transaction) error {
 	_, err := r.db.Exec(context.Background(),
 		`INSERT INTO transactions 
-		(id, payment_type, payment_mode, status, amount, currency)
-		VALUES ($1,$2,$3,$4,$5,$6)`,
-		tx.ID, tx.PaymentType, tx.PaymentMode, tx.Status, tx.Amount, tx.Currency,
+	(id, user_ref_id, source_ref_id, destination_ref_id, payment_type, payment_mode, status, dc_flag, amount, currency, network_txn_id, gateway_txn_id)
+	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+		tx.ID,
+		tx.UserRefId,
+		tx.SourceRefId,
+		tx.DestinationRefId,
+		tx.PaymentType,
+		tx.PaymentMode,
+		tx.Status,
+		tx.DcFlag,
+		tx.Amount,
+		tx.Currency,
+		tx.NetworkTxnId,
+		tx.GatewayTxnId,
 	)
+
 	return err
 }
 

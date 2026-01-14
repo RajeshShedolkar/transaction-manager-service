@@ -117,3 +117,19 @@ TM updates:
 | transactions | RELEASED |
 | ledger | RELEASE |
 
+
+
+
+sample request:
+{
+  "userRefId": "USR2001",
+  "sourceRefId": "CARD9988",
+  "destinationRefId": "MERCHANT112",
+  "paymentType": "CARD",
+  "paymentMode": "CARD",
+  "dcFlag": "D",
+  "amount": 2500,
+  "currency": "INR",
+  "networkTxnId": "VISA889977",
+  "gatewayTxnId": "RAZOR12345"
+}

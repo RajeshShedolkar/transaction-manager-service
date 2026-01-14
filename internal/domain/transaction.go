@@ -13,10 +13,22 @@ const (
 )
 
 type Transaction struct {
-	ID          string
+	ID string // TM transaction id
+
+	UserRefId        string
+	SourceRefId      string
+	DestinationRefId string
+
 	PaymentType string // IMMEDIATE / NEFT / CARD
 	PaymentMode string // IMPS / UPI / NEFT / CARD
-	Status      TransactionStatus
-	Amount      int64
-	Currency    string
+
+	Status TransactionStatus
+
+	DcFlag string // D or C
+
+	Amount   int64
+	Currency string
+
+	NetworkTxnId string
+	GatewayTxnId string
 }

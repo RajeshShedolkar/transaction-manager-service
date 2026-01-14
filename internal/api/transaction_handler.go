@@ -35,10 +35,16 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	}
 	log.Info("REQUEST_VALIDATED")
 	tx := &domain.Transaction{
-		PaymentType: req.PaymentType,
-		PaymentMode: req.PaymentMode,
-		Amount:      req.Amount,
-		Currency:    req.Currency,
+		UserRefId:        req.UserRefId,
+		SourceRefId:      req.SourceRefId,
+		DestinationRefId: req.DestinationRefId,
+		DcFlag:           req.DcFlag,
+		PaymentType:      req.PaymentType,
+		PaymentMode:      req.PaymentMode,
+		Amount:           req.Amount,
+		Currency:         req.Currency,
+		NetworkTxnId:     req.NetworkTxnId,
+		GatewayTxnId:     req.GatewayTxnId,
 	}
 	var err error
 	//err := h.service.CreateImmediateTransaction(tx)

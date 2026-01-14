@@ -1,0 +1,6 @@
+                  id                  | user_ref_id | source_ref_id | destination_ref_id | payment_type | payment_mode |  status   | dc_flag | amount | currency | network_txn_id | gateway_txn_id |         created_at         |         updated_at         
+--------------------------------------+-------------+---------------+--------------------+--------------+--------------+-----------+---------+--------+----------+----------------+----------------+----------------------------+----------------------------
+ 9bebfa90-7136-4554-913c-b80556936710 | USR1001     | ACC100        | ACC200             | IMMEDIATE    | IMPS         | COMPLETED | D       |   1500 | INR      |                |                | 2026-01-14 13:23:01.705831 | 2026-01-14 13:23:01.714459
+ cb0a1fa8-87e9-4953-bb92-b1089371d5f4 | USR1001     | ACC100        | ACC200             | IMMEDIATE    | IMPS         | COMPLETED | D       |   1500 | INR      |                |                | 2026-01-14 14:11:26.612643 | 2026-01-14 14:11:26.621725
+(2 rows)
+

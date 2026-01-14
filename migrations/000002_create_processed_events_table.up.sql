@@ -3,4 +3,3 @@ CREATE TABLE IF NOT EXISTS processed_events (
     event_type VARCHAR(50) NOT NULL,
     processed_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
-;

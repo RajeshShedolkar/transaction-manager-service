@@ -17,11 +17,18 @@ func NewPgxLedgerRepo(db *pgxpool.Pool) *PgxLedgerRepo {
 
 func (r *PgxLedgerRepo) Append(entry *domain.LedgerEntry) error {
 	_, err := r.db.Exec(context.Background(),
-		`INSERT INTO ledger_entries 
-		(id, transaction_id, entry_type, amount, source)
-		VALUES ($1,$2,$3,$4,$5)`,
-		entry.ID, entry.TransactionID, entry.EntryType, entry.Amount, entry.Source,
+		`INSERT INTO ledger_entries
+	(id, transaction_id, account_ref_id, dc_flag, entry_type, amount, source)
+	VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+		entry.ID,
+		entry.TransactionID,
+		entry.AccountRefId,
+		entry.DcFlag,
+		entry.EntryType,
+		entry.Amount,
+		entry.Source,
 	)
+
 	return err
 }
 
