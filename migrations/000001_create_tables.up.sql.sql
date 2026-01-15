@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
     entry_type VARCHAR(20) NOT NULL,         -- AUTH, SETTLEMENT, RELEASE, REVERSAL, DEBIT, CREDIT
     amount BIGINT NOT NULL,
     source VARCHAR(20) NOT NULL,             -- API, EVENT, SYSTEM
+    msg VARCHAR(255),
     created_at TIMESTAMP DEFAULT NOW(),
     
     CONSTRAINT fk_tx FOREIGN KEY(transaction_id) REFERENCES transactions(id)
