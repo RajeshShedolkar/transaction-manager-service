@@ -15,22 +15,17 @@ const (
 )
 
 type Transaction struct {
-	ID string // TM transaction id
-
+	ID               string // TM transaction id
 	UserRefId        string
 	SourceRefId      string
 	DestinationRefId string
-
-	PaymentType string // SYNC / ASYNC / IMMEDIATE / DEFFERRED
-	PaymentMode string // IMPS / UPI / NEFT / CARD
-
-	Status TransactionStatus
-
-	DcFlag string // D or C
-
-	Amount   int64
-	Currency string
-
-	NetworkTxnId string
-	GatewayTxnId string
+	PaymentType      string // SYNC / ASYNC / IMMEDIATE / DEFFERRED
+	PaymentMode      string // IMPS / UPI / NEFT / CARD
+	Status           TransactionStatus
+	SagaStatus       string
+	DcFlag           string // D or C
+	Amount           int64
+	Currency         string
+	NetworkTxnId     string
+	GatewayTxnId     string
 }

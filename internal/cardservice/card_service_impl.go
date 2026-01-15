@@ -56,6 +56,7 @@ func (s *EventTransactionServiceImpl) HandleAuthSuccess(event domain.CardEvent) 
 		EntryType:     domain.LedgerAuth,
 		Amount:        tx.Amount,
 		Source:        "EVENT",
+		Msg:           "Txn authorized from source account",
 	}
 
 	return s.ledgerRepo.Append(ledger)
@@ -77,6 +78,7 @@ func (s *EventTransactionServiceImpl) HandleSettlementStarted(event domain.CardE
 		EntryType:     domain.LedgerSettlement,
 		Amount:        tx.Amount,
 		Source:        "EVENT",
+		Msg:           "Settlement started for transaction",
 	}
 
 	if err := s.ledgerRepo.Append(ledger); err != nil {
@@ -103,6 +105,7 @@ func (s *EventTransactionServiceImpl) HandleDebitConfirmed(event domain.CardEven
 		EntryType:     domain.LedgerDebit,
 		Amount:        tx.Amount,
 		Source:        "EVENT",
+		Msg:           "Debit confirmed from source account",
 	}
 
 	return s.ledgerRepo.Append(ledger)
@@ -124,6 +127,7 @@ func (s *EventTransactionServiceImpl) HandleCreditConfirmed(event domain.CardEve
 		EntryType:     domain.LedgerCredit,
 		Amount:        tx.Amount,
 		Source:        "EVENT",
+		Msg:           "Credit confirmed to destination account",
 	}
 
 	if err := s.ledgerRepo.Append(ledger); err != nil {
@@ -153,6 +157,7 @@ func (s *EventTransactionServiceImpl) HandleCancel(event domain.CardEvent) error
 		EntryType:     domain.LedgerRelease,
 		Amount:        tx.Amount,
 		Source:        "EVENT",
+		Msg:           "Authorization released for transaction",
 	}
 
 	if err := s.ledgerRepo.Append(ledger); err != nil {
@@ -178,6 +183,7 @@ func (s *EventTransactionServiceImpl) HandleSettlementFailed(event domain.CardEv
 		EntryType:     domain.LedgerReversal,
 		Amount:        tx.Amount,
 		Source:        "EVENT",
+		Msg:           "Settlement failed, amount reversed to source account",
 	}
 
 	if err := s.ledgerRepo.Append(ledger); err != nil {
@@ -204,6 +210,7 @@ func (s *EventTransactionServiceImpl) HandleRefund(event domain.CardEvent) error
 		EntryType:     domain.LedgerRefund,
 		Amount:        tx.Amount,
 		Source:        "EVENT",
+		Msg:           "Refund processed to source account",
 	}
 
 	if err := s.ledgerRepo.Append(ledger); err != nil {

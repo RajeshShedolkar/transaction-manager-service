@@ -21,5 +21,5 @@ type LedgerEntry struct {
 	EntryType     LedgerEntryType // AUTH, SETTLEMENT, RELEASE, REVERSAL, DEBIT, CREDIT, REFUND
 	Amount        int64
 	Source        string // API, EVENT, SYSTEM
-
+	Msg           string
 }
