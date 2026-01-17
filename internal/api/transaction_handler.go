@@ -7,6 +7,8 @@ import (
 	"go.uber.org/zap"
 
 	//"transaction-manager/internal/config"
+	"context"
+	"transaction-manager/internal/config"
 	"transaction-manager/internal/domain"
 	"transaction-manager/internal/service"
 	"transaction-manager/pkg/logger"
@@ -14,11 +16,11 @@ import (
 
 type TransactionHandler struct {
 	service service.TransactionService
-	//event domain.AccountEventPublisher
+	event   service.AccountEventPublisher
 }
 
-func NewTransactionHandler(s service.TransactionService) *TransactionHandler {
-	return &TransactionHandler{service: s}
+func NewTransactionHandler(s service.TransactionService, e service.AccountEventPublisher) *TransactionHandler {
+	return &TransactionHandler{service: s, event: e}
 }
 
 func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
@@ -52,7 +54,6 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	}
 
 	var err error
-	//err := h.service.CreateImmediateTransaction(tx)
 	log.Info("BUSINESS_LOGIC_STARTED")
 
 	if req.PaymentMode == "NEFT" {
@@ -70,9 +71,9 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	// emit event to account service
+	// emit event to account servicegit
 
-	//h.event.PublishToAccountService(tx, "DEBIT_ACCOUNT", config.KAFKA_ACCOUNT_TOPIC)
+	h.event.PublishToAccountService(tx, "DEBIT_ACCOUNT", config.KAFKA_ACCOUNT_TOPIC, context.Background())
 
 	// DEBIT_REQUESTED	REQUESTED
 	h.service.RecordSagaStep(tx.ID, "DEBIT_REQUESTED", "REQUESTED")

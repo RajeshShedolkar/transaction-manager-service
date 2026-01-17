@@ -50,9 +50,9 @@ func main() {
 	// ---------- Services ----------
 	txService := service.NewTransactionService(txRepo, ledgerRepo, sagaRepo)
 	eventTxService := cardservice.NewEventTransactionService(txRepo, ledgerRepo, eventRepo)
-	//accountEventPublisher := events.NewKafkaAccountEventPublisher()
+	accountEventPublisher := service.NewKafkaAccountEventPublisher()
 	// ---------- API ----------
-	handler := api.NewTransactionHandler(txService)
+	handler := api.NewTransactionHandler(txService, accountEventPublisher)
 	eventHandler := events.NewEventTransactionHandler(eventTxService)
 
 	r := gin.Default()
@@ -68,12 +68,12 @@ func main() {
 	accountEventReader := events.NewKafkaReader(brokers, config.KAFKA_ACCOUNT_TOPIC, "tm-account-group")
 
 	go events.Consume(cardAuthReader, func(msg []byte) {
-		
+
 		eventHandler.HandleCardEventIdempotent(msg, *eventRepo)
 	})
 
 	go events.Consume(accountEventReader, func(msg []byte) {
-		// eventHandler.HandleAccountEventIdempotent(msg, *eventRepo)
+		//eventHandler.HandleAccountEventIdempotent(msg, *eventRepo)
 	})
 
 	logger.Log.Info("Kafka idempotent consumer started")
