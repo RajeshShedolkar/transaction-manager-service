@@ -189,10 +189,23 @@ func (s *TransactionServiceImpl) UpdateSagaStatus(txID, status string) {
 	_ = s.sagaRepo.UpdateSagaStatus(txID, status)
 }
 
-func (s *TransactionServiceImpl) UpdateTransactionWithSaga(txID string, status domain.TransactionStatus, sagaStatus domain.SagaStatus) error {
-	err := s.txRepo.UpdateStatusWithSaga(txID, status, sagaStatus)
+func (s *TransactionServiceImpl) UpdateTransactionWithSaga(txID *domain.Transaction, status domain.TransactionStatus, sagaStatus domain.SagaStatus) error {
+	err := s.txRepo.UpdateStatusWithSaga(txID.ID, status, sagaStatus)
 	if err != nil {
 		return err
+	}
+	l_err := s.ledgerRepo.Append(&domain.LedgerEntry{
+		ID:            uuid.New().String(),
+		TransactionID: txID.ID,
+		AccountRefId:  txID.SourceRefId,
+		DcFlag:        txID.DcFlag,
+		EntryType:     domain.LedgerBlock,
+		Amount:        txID.Amount,
+		Source:        "Event",
+	})
+	if l_err != nil {
+		logger.Log.Error("APPENDING_LEDGER_ENTRY_FAILED", zap.Error(l_err))
+		return l_err
 	}
 	return nil
 }

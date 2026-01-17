@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,7 @@ import (
 
 	"transaction-manager/internal/config"
 	"transaction-manager/internal/domain"
+	"transaction-manager/internal/repository"
 	"transaction-manager/internal/service"
 	"transaction-manager/pkg/logger"
 )
@@ -77,7 +79,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	go h.event.PublishToAccountService(tx, string(domain.StatusBlockRequested), config.KafkaAccountBalanceBlockCmd, context.Background())
 
 	// DEBIT_REQUESTED	REQUESTED
-	h.service.UpdateTransactionWithSaga(tx.ID, domain.StatusBlockRequested, domain.STARTED)
+	h.service.UpdateTransactionWithSaga(tx, domain.StatusBlockRequested, domain.STARTED)
 
 	resp := CreateTransactionResponse{
 		TransactionID: tx.ID,
@@ -119,4 +121,44 @@ func (h *TransactionHandler) GetTransaction(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, resp)
+}
+
+func (h *TransactionHandler) HandleAccBalBlocked(msg []byte, eventRepo repository.PgxEventRepo) {
+	logger.Log.Info("Handling Account Balance Blocked event in TM", zap.ByteString("message", msg))
+
+	// Idempotent processing
+	var event domain.ConsumerEventForAccountService
+	err := json.Unmarshal(msg, &event)
+	if err != nil {
+		logger.Log.Error("EVENT_UNMARSHAL_FAILED", zap.Error(err))
+		return
+	}
+
+	processed, err := eventRepo.IsProcessed(event.EventID)
+	if err != nil {
+		logger.Log.Error("IDEMPOTENCY_CHECK_FAILED", zap.Error(err))
+		return
+	}
+	if processed {
+		logger.Log.Info("DUPLICATE_EVENT_IGNORED - Update Tx and SagaState", zap.String("event_id", event.EventID))
+		return
+	}
+
+	logger.Log.Info("PROCESSING_ACCOUNT_BALANCE_BLOCKED_EVENT",
+		zap.String("event_id", event.EventID),
+		zap.String("event_type", event.EventType),
+	)
+	Tx, _, err := h.service.GetTransaction(event.TransactionID)
+	if err != nil {
+		logger.Log.Error("TRANSACTION_NOT_FOUND_FOR_EVENT",
+			zap.String("event_id", event.EventID),
+			zap.String("tx_id", event.TransactionID),
+		)
+		return
+	}
+	h.service.RecordSagaStep(event.TransactionID, string(domain.SagaBalanceBlocked), domain.DONE)
+	h.service.UpdateTransactionWithSaga(Tx, domain.StatusNetworkRequested, domain.SagaNetworkRequestInProgress)
+
+	go h.event.PublishToAccountService(Tx, string(domain.StatusNetworkRequested), config.KafkaPaymentIMPSDebitCmd, context.Background())
+
 }

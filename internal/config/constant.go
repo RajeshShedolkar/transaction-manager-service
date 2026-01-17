@@ -2,8 +2,8 @@ package config
 
 var KAFKA_BROKERS = []string{"localhost:9092"}
 var ENV = "prod"
-var ACC_TM = "account-svc"
-var PAYMENT_TM = "payment-network"
+var ACC_TM_GROUP = "account-svc"
+var PAYMENT_TM_GROUP = "payment-network"
 
 // TOPIC to publish account service commands
 var KAFKA_ACCOUNT_TOPIC = "account.commands"

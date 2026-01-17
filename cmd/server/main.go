@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 
 	"transaction-manager/internal/api"
 	"transaction-manager/internal/cardservice"
@@ -66,15 +67,16 @@ func main() {
 	// ---------- Kafka Consumer ----------
 	brokers := config.KAFKA_BROKERS
 	cardAuthReader := kfk.NewKafkaReader(brokers, config.KAFKA_CARD_EVENT_TOPIC, "tm-card-group")
-	accountEventReader := kfk.NewKafkaReader(brokers, config.KAFKA_ACCOUNT_TOPIC, "tm-account-group")
+	KfkAccountBalanceBlockedReader := kfk.NewKafkaReader(brokers, config.KafkaAccountBalanceBlockedEvt, config.ACC_TM_GROUP)
 
 	go kfk.Consume(cardAuthReader, func(msg []byte) {
 
 		eventHandler.HandleCardEventIdempotent(msg, *eventRepo)
 	})
 
-	go kfk.Consume(accountEventReader, func(msg []byte) {
-		//handler.HandleAccountEventIdempotent(msg, *eventRepo)
+	go kfk.Consume(KfkAccountBalanceBlockedReader, func(msg []byte) {
+		logger.Log.Info("Account Balance Blocked event received in TM %s", zap.ByteString("message", msg))
+		handler.HandleAccBalBlocked(msg, *eventRepo)
 	})
 
 	logger.Log.Info("Kafka idempotent consumer started")

@@ -6,6 +6,8 @@ import (
 	"transaction-manager/internal/config"
 	"transaction-manager/internal/domain"
 	"transaction-manager/internal/kfk"
+
+	"github.com/google/uuid"
 )
 
 type KafkaAccountEventPublisherImpl struct {
@@ -19,6 +21,7 @@ func (k *KafkaAccountEventPublisherImpl) PublishToAccountService(tx *domain.Tran
 
 	cmd := domain.ConsumerEventForAccountService{
 		TransactionID: tx.ID,
+		EventID:       uuid.New().String(),
 		EventType:     EventType,
 		UserRefId:     tx.UserRefId,
 		AccountRefId:  tx.SourceRefId,
