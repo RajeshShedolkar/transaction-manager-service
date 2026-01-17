@@ -50,6 +50,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		NetworkTxnId:     req.NetworkTxnId,
 		GatewayTxnId:     req.GatewayTxnId,
 	}
+
 	var err error
 	//err := h.service.CreateImmediateTransaction(tx)
 	log.Info("BUSINESS_LOGIC_STARTED")
@@ -59,6 +60,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	} else {
 		err = h.service.CreateImmediateTransaction(tx)
 	}
+
 	if err != nil {
 		log.Error("BUSINESS_LOGIC_FAILED",
 			zap.String("reason", "rule_violation"),
@@ -77,8 +79,8 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 
 	resp := CreateTransactionResponse{
 		TransactionID: tx.ID,
-		Status:        string(tx.Status),
-		Message:       "Transaction processed successfully",
+		Status:        string(domain.StatusPending),
+		Message:       "Transaction is being processed",
 	}
 	log.Info("RESPONSE_SENT",
 		zap.Int("status", 201),

@@ -47,11 +47,11 @@ func (s *TransactionServiceImpl) CreateImmediateTransaction(tx *domain.Transacti
 	}
 
 	// 3. Transition to COMPLETED
-	err = state.Transition(tx, domain.StatusCompleted)
-	if err != nil {
-		logger.Log.Error("STATE_TRANSITION_FAILED", zap.Error(err))
-		return err
-	}
+	// err = state.Transition(tx, domain.StatusCompleted)
+	// if err != nil {
+	// 	logger.Log.Error("STATE_TRANSITION_FAILED", zap.Error(err))
+	// 	return err
+	// }
 
 	// 4. Update status in DB
 	// err = s.txRepo.UpdateStatus(tx.ID, tx.Status)
