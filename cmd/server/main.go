@@ -11,6 +11,7 @@ import (
 	"transaction-manager/internal/cardservice"
 	"transaction-manager/internal/config"
 	"transaction-manager/internal/events"
+	"transaction-manager/internal/kfk"
 	"transaction-manager/internal/repository"
 	"transaction-manager/internal/service"
 	"transaction-manager/pkg/logger"
@@ -64,16 +65,16 @@ func main() {
 
 	// ---------- Kafka Consumer ----------
 	brokers := config.KAFKA_BROKERS
-	cardAuthReader := events.NewKafkaReader(brokers, config.KAFKA_CARD_EVENT_TOPIC, "tm-card-group")
-	accountEventReader := events.NewKafkaReader(brokers, config.KAFKA_ACCOUNT_TOPIC, "tm-account-group")
+	cardAuthReader := kfk.NewKafkaReader(brokers, config.KAFKA_CARD_EVENT_TOPIC, "tm-card-group")
+	accountEventReader := kfk.NewKafkaReader(brokers, config.KAFKA_ACCOUNT_TOPIC, "tm-account-group")
 
-	go events.Consume(cardAuthReader, func(msg []byte) {
+	go kfk.Consume(cardAuthReader, func(msg []byte) {
 
 		eventHandler.HandleCardEventIdempotent(msg, *eventRepo)
 	})
 
-	go events.Consume(accountEventReader, func(msg []byte) {
-		//eventHandler.HandleAccountEventIdempotent(msg, *eventRepo)
+	go kfk.Consume(accountEventReader, func(msg []byte) {
+		//handler.HandleAccountEventIdempotent(msg, *eventRepo)
 	})
 
 	logger.Log.Info("Kafka idempotent consumer started")

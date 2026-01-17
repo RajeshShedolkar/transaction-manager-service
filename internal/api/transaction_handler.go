@@ -1,13 +1,14 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
 	//"transaction-manager/internal/config"
-	"context"
+
 	"transaction-manager/internal/config"
 	"transaction-manager/internal/domain"
 	"transaction-manager/internal/service"
@@ -73,7 +74,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 
 	// emit event to account servicegit
 
-	h.event.PublishToAccountService(tx, "DEBIT_ACCOUNT", config.KAFKA_ACCOUNT_TOPIC, context.Background())
+	go h.event.PublishToAccountService(tx, "DEBIT_ACCOUNT", config.KAFKA_ACCOUNT_TOPIC, context.Background())
 
 	// DEBIT_REQUESTED	REQUESTED
 	h.service.RecordSagaStep(tx.ID, "DEBIT_REQUESTED", "REQUESTED")

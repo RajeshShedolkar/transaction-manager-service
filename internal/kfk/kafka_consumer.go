@@ -1,4 +1,4 @@
-package events
+package kfk
 
 import (
 	"context"
@@ -45,9 +45,9 @@ func NewKafkaProducer(brokers []string, topic string) *Producer {
 	writer := &kafka.Writer{
 		Addr:         kafka.TCP(brokers...),
 		Topic:        topic,
-		Balancer:     &kafka.Hash{},       // ordering by key
-		RequiredAcks: kafka.RequireAll,    // wait for broker ACK
-		Async:        false,               // synchronous produce
+		Balancer:     &kafka.Hash{},    // ordering by key
+		RequiredAcks: kafka.RequireAll, // wait for broker ACK
+		Async:        false,            // synchronous produce
 	}
 
 	return &Producer{writer: writer}
