@@ -4,18 +4,14 @@ type CreateTransactionRequest struct {
 	UserRefId        string `json:"userRefId"`        // from gateway
 	SourceRefId      string `json:"sourceRefId"`      // account/card reference
 	DestinationRefId string `json:"destinationRefId"` // merchant/bank reference
-
-	PaymentType string `json:"paymentType"` // SYNC, ASYNC, IMMEDIATE, DEFFERRED
-	PaymentMode string `json:"paymentMode"` // IMPS, UPI, NEFT, CARD
-
-	DcFlag   string `json:"dcFlag"` // D or C
-	Amount   int64  `json:"amount"`
-	Currency string `json:"currency"`
-
-	NetworkTxnId string `json:"networkTxnId,omitempty"`
-	GatewayTxnId string `json:"gatewayTxnId,omitempty"`
+	PaymentType      string `json:"paymentType"`      // SYNC, ASYNC, IMMEDIATE, DEFFERRED
+	PaymentMode      string `json:"paymentMode"`      // IMPS, UPI, NEFT, CARD
+	DcFlag           string `json:"dcFlag"`           // D or C
+	Amount           int64  `json:"amount"`
+	Currency         string `json:"currency"`
+	NetworkTxnId     string `json:"networkTxnId,omitempty"`
+	GatewayTxnId     string `json:"gatewayTxnId,omitempty"`
 }
-
 
 type CreateTransactionResponse struct {
 	TransactionID string `json:"transactionId"`

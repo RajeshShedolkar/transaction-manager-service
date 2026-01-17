@@ -27,7 +27,7 @@ func NewEventTransactionService(
 	}
 }
 
-func (s *EventTransactionServiceImpl) HandleAuthSuccess(event domain.CardEvent) error {
+func (s *EventTransactionServiceImpl) HandleAuthSuccess(event domain.TxEvent) error {
 
 	tx := &domain.Transaction{
 		ID:               uuid.New().String(),
@@ -63,7 +63,7 @@ func (s *EventTransactionServiceImpl) HandleAuthSuccess(event domain.CardEvent) 
 }
 
 // ---------- SETTLEMENT STARTED ----------
-func (s *EventTransactionServiceImpl) HandleSettlementStarted(event domain.CardEvent) error {
+func (s *EventTransactionServiceImpl) HandleSettlementStarted(event domain.TxEvent) error {
 
 	tx, err := s.txRepo.FindByNetworkTxnID(event.NetworkTxnId)
 	if err != nil {
@@ -90,7 +90,7 @@ func (s *EventTransactionServiceImpl) HandleSettlementStarted(event domain.CardE
 }
 
 // ---------- DEBIT CONFIRMED ----------
-func (s *EventTransactionServiceImpl) HandleDebitConfirmed(event domain.CardEvent) error {
+func (s *EventTransactionServiceImpl) HandleDebitConfirmed(event domain.TxEvent) error {
 
 	tx, err := s.txRepo.FindByNetworkTxnID(event.NetworkTxnId)
 	if err != nil {
@@ -112,7 +112,7 @@ func (s *EventTransactionServiceImpl) HandleDebitConfirmed(event domain.CardEven
 }
 
 // ---------- CREDIT CONFIRMED ----------
-func (s *EventTransactionServiceImpl) HandleCreditConfirmed(event domain.CardEvent) error {
+func (s *EventTransactionServiceImpl) HandleCreditConfirmed(event domain.TxEvent) error {
 
 	tx, err := s.txRepo.FindByNetworkTxnID(event.NetworkTxnId)
 	if err != nil {
@@ -139,7 +139,7 @@ func (s *EventTransactionServiceImpl) HandleCreditConfirmed(event domain.CardEve
 }
 
 // ---------- CANCEL REQUESTED (RELEASE) ----------
-func (s *EventTransactionServiceImpl) HandleCancel(event domain.CardEvent) error {
+func (s *EventTransactionServiceImpl) HandleCancel(event domain.TxEvent) error {
 
 	tx, err := s.txRepo.FindByNetworkTxnID(event.NetworkTxnId)
 	if err != nil {
@@ -169,7 +169,7 @@ func (s *EventTransactionServiceImpl) HandleCancel(event domain.CardEvent) error
 }
 
 // ---------- SETTLEMENT FAILED (REVERSAL) ----------
-func (s *EventTransactionServiceImpl) HandleSettlementFailed(event domain.CardEvent) error {
+func (s *EventTransactionServiceImpl) HandleSettlementFailed(event domain.TxEvent) error {
 
 	tx, err := s.txRepo.FindByNetworkTxnID(event.NetworkTxnId)
 	if err != nil {
@@ -195,7 +195,7 @@ func (s *EventTransactionServiceImpl) HandleSettlementFailed(event domain.CardEv
 }
 
 // ---------- REFUND PROCESSED ----------
-func (s *EventTransactionServiceImpl) HandleRefund(event domain.CardEvent) error {
+func (s *EventTransactionServiceImpl) HandleRefund(event domain.TxEvent) error {
 
 	tx, err := s.txRepo.FindByNetworkTxnID(event.NetworkTxnId)
 	if err != nil {

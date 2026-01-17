@@ -18,8 +18,8 @@ func NewPgxTransactionRepo(db *pgxpool.Pool) *PgxTransactionRepo {
 func (r *PgxTransactionRepo) Save(tx *domain.Transaction) error {
 	_, err := r.db.Exec(context.Background(),
 		`INSERT INTO transactions 
-	(id, user_ref_id, source_ref_id, destination_ref_id, payment_type, payment_mode, status, dc_flag, amount, currency, network_txn_id, gateway_txn_id)
-	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+	(id, user_ref_id, source_ref_id, destination_ref_id, payment_type, payment_mode, status, dc_flag, amount, currency, network_txn_id, gateway_txn_id, saga_status)
+	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12, $13)`,
 		tx.ID,
 		tx.UserRefId,
 		tx.SourceRefId,
@@ -32,6 +32,7 @@ func (r *PgxTransactionRepo) Save(tx *domain.Transaction) error {
 		tx.Currency,
 		tx.NetworkTxnId,
 		tx.GatewayTxnId,
+		tx.SagaStatus,
 	)
 
 	return err
@@ -57,7 +58,6 @@ func (r *PgxTransactionRepo) UpdateStatus(id string, status domain.TransactionSt
 	)
 	return err
 }
-
 
 func (r *PgxTransactionRepo) FindByNetworkTxnID(id string) (*domain.Transaction, error) {
 	row := r.db.QueryRow(context.Background(),

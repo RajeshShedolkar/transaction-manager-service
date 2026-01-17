@@ -1,7 +1,8 @@
 package domain
 
-type CardEvent struct {
+type TxEvent struct {
 	EventID          string
+	TxId             string
 	UserRefId        string
 	SourceRefId      string
 	DestinationRefId string

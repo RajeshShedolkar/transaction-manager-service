@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 
+	//"transaction-manager/internal/config"
 	"transaction-manager/internal/domain"
 	"transaction-manager/internal/service"
 	"transaction-manager/pkg/logger"
@@ -13,6 +14,7 @@ import (
 
 type TransactionHandler struct {
 	service service.TransactionService
+	//event domain.AccountEventPublisher
 }
 
 func NewTransactionHandler(s service.TransactionService) *TransactionHandler {
@@ -39,8 +41,10 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		SourceRefId:      req.SourceRefId,
 		DestinationRefId: req.DestinationRefId,
 		DcFlag:           req.DcFlag,
+		Status:           "INITIATED",
 		PaymentType:      req.PaymentType,
 		PaymentMode:      req.PaymentMode,
+		SagaStatus:       "STARTED",
 		Amount:           req.Amount,
 		Currency:         req.Currency,
 		NetworkTxnId:     req.NetworkTxnId,
@@ -63,6 +67,13 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+
+	// emit event to account service
+
+	//h.event.PublishToAccountService(tx, "DEBIT_ACCOUNT", config.KAFKA_ACCOUNT_TOPIC)
+
+	// DEBIT_REQUESTED	REQUESTED
+	h.service.RecordSagaStep(tx.ID, "DEBIT_REQUESTED", "REQUESTED")
 
 	resp := CreateTransactionResponse{
 		TransactionID: tx.ID,

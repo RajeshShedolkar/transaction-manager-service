@@ -16,15 +16,18 @@ import (
 type TransactionServiceImpl struct {
 	txRepo     repository.TransactionRepository
 	ledgerRepo repository.LedgerRepository
+	sagaRepo   repository.SagaRepository
 }
 
 func NewTransactionService(
 	txRepo repository.TransactionRepository,
 	ledgerRepo repository.LedgerRepository,
+	sagaRepo repository.SagaRepository,
 ) *TransactionServiceImpl {
 	return &TransactionServiceImpl{
 		txRepo:     txRepo,
 		ledgerRepo: ledgerRepo,
+		sagaRepo:   sagaRepo,
 	}
 }
 
@@ -51,11 +54,11 @@ func (s *TransactionServiceImpl) CreateImmediateTransaction(tx *domain.Transacti
 	}
 
 	// 4. Update status in DB
-	err = s.txRepo.UpdateStatus(tx.ID, tx.Status)
-	if err != nil {
-		logger.Log.Error("UPDATING_TRANSACTION_STATUS_FAILED", zap.Error(err))
-		return err
-	}
+	// err = s.txRepo.UpdateStatus(tx.ID, tx.Status)
+	// if err != nil {
+	// 	logger.Log.Error("UPDATING_TRANSACTION_STATUS_FAILED", zap.Error(err))
+	// 	return err
+	// }
 
 	// 5. Append ledger entry
 	ledger := &domain.LedgerEntry{
@@ -63,7 +66,7 @@ func (s *TransactionServiceImpl) CreateImmediateTransaction(tx *domain.Transacti
 		AccountRefId:  tx.SourceRefId,
 		TransactionID: tx.ID,
 		DcFlag:        tx.DcFlag,
-		EntryType:     domain.LedgerAuth,
+		EntryType:     domain.LedgerInit,
 		Amount:        tx.Amount,
 		Source:        "API",
 	}
@@ -73,7 +76,10 @@ func (s *TransactionServiceImpl) CreateImmediateTransaction(tx *domain.Transacti
 		logger.Log.Error("APPENDING_LEDGER_ENTRY_FAILED", zap.Error(err))
 		return err
 	}
-	logger.Log.Info("IMMEDIATE_TRANSACTION_CREATED_SUCCESSFULLY", zap.String("transaction_id", tx.ID))
+	logger.Log.Info("IMMEDIATE_TRANSACTION_INIT_SUCCESSFULLY", zap.String("transaction_id", tx.ID))
+	// 6. Append saga step
+	s.RecordSagaStep(tx.ID, "INITIATED", "STARTED")
+
 	return nil
 }
 
@@ -167,4 +173,18 @@ func (s *TransactionServiceImpl) HandleNEFTSettlement(txID string, status string
 	}
 
 	return s.ledgerRepo.Append(ledger)
+}
+
+func (s *TransactionServiceImpl) RecordSagaStep(txID, step, status string) {
+	_ = s.sagaRepo.AddStep(&domain.SagaStep{
+		ID:            uuid.New().String(),
+		TransactionID: txID,
+		StepName:      step,
+		Status:        status,
+	})
+	logger.Log.Info("SAGA_STEP_RECORDED", zap.String("transaction_id", txID), zap.String("step", step), zap.String("status", status))
+}
+
+func (s *TransactionServiceImpl) UpdateSagaStatus(txID, status string) {
+	_ = s.sagaRepo.UpdateSagaStatus(txID, status)
 }

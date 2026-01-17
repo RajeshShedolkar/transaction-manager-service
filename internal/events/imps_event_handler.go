@@ -3,21 +3,20 @@ package events
 import (
 	"encoding/json"
 	"log"
-
-	"transaction-manager/internal/cardservice"
+	"transaction-manager/internal/imps"
 	"transaction-manager/internal/domain"
 	"transaction-manager/internal/repository"
 )
 
-type EventTransactionHandler struct {
-	service cardservice.CardEventService
+type ImpsEventTransactionHandler struct {
+	service imps.ImpsEventService
 }
 
-func NewEventTransactionHandler(s cardservice.CardEventService) *EventTransactionHandler {
-	return &EventTransactionHandler{service: s}
+func NewImpsEventTransactionHandler(s imps.ImpsEventService) *ImpsEventTransactionHandler {
+	return &ImpsEventTransactionHandler{service: s}
 }
 
-func (h *EventTransactionHandler) HandleCardEventIdempotent(
+func (h *ImpsEventTransactionHandler) HandleImpsEventIdempotent(
 	message []byte,
 	eventRepo repository.PgxEventRepo,
 ) {
@@ -43,33 +42,12 @@ func (h *EventTransactionHandler) HandleCardEventIdempotent(
 	et := domain.EventType(event.EventType)
 	switch et {
 
-	case domain.EventAuthSuccess:
-		// AUTH → ledger AUTH → txn AUTHORIZED
-		h.service.HandleAuthSuccess(event)
-
-	case domain.EventSettlementStarted:
-		// SETTLEMENT marker → txn PROCESSING
-		h.service.HandleSettlementStarted(event)
-
 	case domain.EventDebitConfirmed:
-		// DEBIT ledger entry
-		h.service.HandleDebitConfirmed(event)
+		// AUTH → ledger AUTH → txn AUTHORIZED
+		h.service.HandleImpsDebitTx(event)
 
 	case domain.EventCreditConfirmed:
-		// CREDIT ledger entry → txn COMPLETED
-		h.service.HandleCreditConfirmed(event)
-
-	case domain.EventCancelRequested:
-		// RELEASE ledger entry → txn RELEASED
-		h.service.HandleCancel(event)
-
-	case domain.EventSettlementFailed:
-		// REVERSAL ledger entry → txn FAILED
-		h.service.HandleSettlementFailed(event)
-
-	case domain.EventRefundProcessed:
-		// REFUND ledger entry → txn REFUNDED
-		h.service.HandleRefund(event)
+		h.service.HandleImpsCreditTx(event)
 
 	default:
 		log.Println("Unhandled card event type:", event.EventType)

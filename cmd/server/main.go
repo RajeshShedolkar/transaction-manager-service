@@ -45,10 +45,12 @@ func main() {
 	txRepo := repository.NewPgxTransactionRepo(db)
 	ledgerRepo := repository.NewPgxLedgerRepo(db)
 	eventRepo := repository.NewPgxEventRepo(db)
+	sagaRepo := repository.NewPgxSagaRepo(db)
 
 	// ---------- Services ----------
-	txService := service.NewTransactionService(txRepo, ledgerRepo)
+	txService := service.NewTransactionService(txRepo, ledgerRepo, sagaRepo)
 	eventTxService := cardservice.NewEventTransactionService(txRepo, ledgerRepo, eventRepo)
+	//accountEventPublisher := events.NewKafkaAccountEventPublisher()
 	// ---------- API ----------
 	handler := api.NewTransactionHandler(txService)
 	eventHandler := events.NewEventTransactionHandler(eventTxService)
@@ -57,13 +59,21 @@ func main() {
 	r.POST("/api/v1/transactions", handler.CreateTransaction)
 	r.GET("/api/v1/transactions/:id", handler.GetTransaction)
 
-	// ---------- Kafka Consumer ----------
-	brokers := []string{"localhost:9092"}
+	//kafka producer
+	events.InitKafkaTopics()
 
-	cardAuthReader := events.NewKafkaReader(brokers, "card-auth-events", "tm-card-group")
+	// ---------- Kafka Consumer ----------
+	brokers := config.KAFKA_BROKERS
+	cardAuthReader := events.NewKafkaReader(brokers, config.KAFKA_CARD_EVENT_TOPIC, "tm-card-group")
+	accountEventReader := events.NewKafkaReader(brokers, config.KAFKA_ACCOUNT_TOPIC, "tm-account-group")
 
 	go events.Consume(cardAuthReader, func(msg []byte) {
+		
 		eventHandler.HandleCardEventIdempotent(msg, *eventRepo)
+	})
+
+	go events.Consume(accountEventReader, func(msg []byte) {
+		// eventHandler.HandleAccountEventIdempotent(msg, *eventRepo)
 	})
 
 	logger.Log.Info("Kafka idempotent consumer started")

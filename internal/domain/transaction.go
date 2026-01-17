@@ -29,3 +29,18 @@ type Transaction struct {
 	NetworkTxnId     string
 	GatewayTxnId     string
 }
+
+type ConsumerEventForAccountService struct {
+	TransactionID string `json:"transactionId"`
+	EventID       string `json:"eventId"`
+	EventType     string `json:"eventType"`
+	UserRefId     string `json:"userRefId"`
+	AccountRefId  string `json:"accountRefId"`
+	Amount        int64  `json:"amount"`
+	Currency      string `json:"currency"`
+}
+
+type ConsumerDLQEventForCardService struct {
+	SourceEventBody TxEvent `json:"sourceEventBody"`
+	ErrorMessage    string  `json:"errorMessage"`
+}

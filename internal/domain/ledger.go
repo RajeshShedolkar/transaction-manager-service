@@ -3,6 +3,7 @@ package domain
 type LedgerEntryType string
 
 const (
+	LedgerInit       LedgerEntryType = "INIT"
 	LedgerDebit      LedgerEntryType = "DEBIT"
 	LedgerCredit     LedgerEntryType = "CREDIT"
 	LedgerAuth       LedgerEntryType = "AUTH"
