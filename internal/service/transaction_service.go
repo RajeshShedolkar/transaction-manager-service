@@ -11,4 +11,5 @@ type TransactionService interface {
 	HandleNEFTSettlement(txID string, status string) error
 	RecordSagaStep(txID, step, status string)
 	UpdateSagaStatus(txID, status string)
+	UpdateTransactionWithSaga(txID string, status domain.TransactionStatus, sagaStatus domain.SagaStatus) error
 }

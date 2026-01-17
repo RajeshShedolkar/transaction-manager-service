@@ -78,7 +78,7 @@ func (s *TransactionServiceImpl) CreateImmediateTransaction(tx *domain.Transacti
 	}
 	logger.Log.Info("IMMEDIATE_TRANSACTION_INIT_SUCCESSFULLY", zap.String("transaction_id", tx.ID))
 	// 6. Append saga step
-	s.RecordSagaStep(tx.ID, "INITIATED", "STARTED")
+	s.RecordSagaStep(tx.ID, string(domain.SagaInit), domain.STARTED)
 
 	return nil
 }
@@ -187,4 +187,12 @@ func (s *TransactionServiceImpl) RecordSagaStep(txID, step, status string) {
 
 func (s *TransactionServiceImpl) UpdateSagaStatus(txID, status string) {
 	_ = s.sagaRepo.UpdateSagaStatus(txID, status)
+}
+
+func (s *TransactionServiceImpl) UpdateTransactionWithSaga(txID string, status domain.TransactionStatus, sagaStatus domain.SagaStatus) error {
+	err := s.txRepo.UpdateStatusWithSaga(txID, status, sagaStatus)
+	if err != nil {
+		return err
+	}
+	return nil
 }

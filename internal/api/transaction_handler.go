@@ -44,10 +44,10 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		SourceRefId:      req.SourceRefId,
 		DestinationRefId: req.DestinationRefId,
 		DcFlag:           req.DcFlag,
-		Status:           "INITIATED",
+		Status:           domain.StatusInitiated,
 		PaymentType:      req.PaymentType,
 		PaymentMode:      req.PaymentMode,
-		SagaStatus:       "STARTED",
+		SagaStatus:       string(domain.SagaInit),
 		Amount:           req.Amount,
 		Currency:         req.Currency,
 		NetworkTxnId:     req.NetworkTxnId,
@@ -74,10 +74,10 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 
 	// emit event to account servicegit
 
-	go h.event.PublishToAccountService(tx, "DEBIT_ACCOUNT", config.KAFKA_ACCOUNT_TOPIC, context.Background())
+	go h.event.PublishToAccountService(tx, string(domain.StatusBlockRequested), config.KafkaAccountBalanceBlockCmd, context.Background())
 
 	// DEBIT_REQUESTED	REQUESTED
-	h.service.RecordSagaStep(tx.ID, "DEBIT_REQUESTED", "REQUESTED")
+	h.service.RecordSagaStep(tx.ID, string(domain.SagaBalanceBlocked), domain.STARTED)
 
 	resp := CreateTransactionResponse{
 		TransactionID: tx.ID,

@@ -7,4 +7,5 @@ type TransactionRepository interface {
 	FindByID(id string) (*domain.Transaction, error)
 	FindByNetworkTxnID(id string) (*domain.Transaction, error)
 	UpdateStatus(id string, status domain.TransactionStatus) error
+	UpdateStatusWithSaga(id string, status domain.TransactionStatus, sagaStatus domain.SagaStatus) error
 }

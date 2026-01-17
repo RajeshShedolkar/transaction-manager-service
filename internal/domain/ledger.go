@@ -3,15 +3,27 @@ package domain
 type LedgerEntryType string
 
 const (
-	LedgerInit       LedgerEntryType = "INIT"
-	LedgerDebit      LedgerEntryType = "DEBIT"
-	LedgerCredit     LedgerEntryType = "CREDIT"
-	LedgerAuth       LedgerEntryType = "AUTH"
-	LedgerProcess    LedgerEntryType = "PROCESS"
+	// System / lifecycle
+	LedgerInit LedgerEntryType = "INIT"
+
+	// Authorization / hold
+	LedgerAuth  LedgerEntryType = "AUTH"  // for card (HOLD)
+	LedgerBlock LedgerEntryType = "BLOCK" // balance blocked (HOLD)
+
+	// Processing (optional / intermediate)
+	LedgerProcess LedgerEntryType = "PROCESS"
+
+	// Final money movement
+	LedgerDebit  LedgerEntryType = "DEBIT"  // customer debited
+	LedgerCredit LedgerEntryType = "CREDIT" // used only for internal settlement, NOT beneficiary
+
+	// Settlement / clearing
 	LedgerSettlement LedgerEntryType = "SETTLEMENT"
-	LedgerRelease    LedgerEntryType = "RELEASE"
-	LedgerReversal   LedgerEntryType = "REVERSAL"
-	LedgerRefund     LedgerEntryType = "REFUND"
+
+	// Compensation flows
+	LedgerRelease  LedgerEntryType = "RELEASE"  // unblock hold
+	LedgerReversal LedgerEntryType = "REVERSAL" // debit reversed
+	LedgerRefund   LedgerEntryType = "REFUND"   // user-visible refund
 )
 
 type LedgerEntry struct {

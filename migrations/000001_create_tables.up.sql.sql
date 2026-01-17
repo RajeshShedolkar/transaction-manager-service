@@ -9,11 +9,11 @@ CREATE TABLE IF NOT EXISTS transactions (
     source_ref_id VARCHAR(64) NOT NULL,      -- account/card reference
     destination_ref_id VARCHAR(64),          -- merchant/bank reference
 
-    payment_type VARCHAR(20) NOT NULL,       -- IMMEDIATE, NEFT, CARD
+    payment_type VARCHAR(20) NOT NULL,       -- IMMEDIATE, SCHEDULED
     payment_mode VARCHAR(20) NOT NULL,       -- IMPS, UPI, NEFT, CARD
-
+    saga_status VARCHAR(20) DEFAULT 'NOT_STARTED',  -- NOT_STARTED, IN_PROGRESS, COMPLETED, FAILED
     status VARCHAR(20) NOT NULL,             -- INITIATED, PENDING, AUTHORIZED, COMPLETED, RELEASED, FAILED
-    dc_flag CHAR(1) NOT NULL,                -- D = Debit, C = Credit
+    dc_flag CHAR(10) NOT NULL,                -- D = Debit, C = Credit
     amount BIGINT NOT NULL,
     currency VARCHAR(10) DEFAULT 'INR',
 
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
     id VARCHAR(64) PRIMARY KEY,
     transaction_id VARCHAR(64) NOT NULL,
     account_ref_id VARCHAR(64) NOT NULL,     -- whose balance impacted
-    dc_flag CHAR(1) NOT NULL,                -- D = Debit, C = Credit
+    dc_flag CHAR(10) NOT NULL,                -- D = Debit, C = Credit
     entry_type VARCHAR(20) NOT NULL,         -- AUTH, SETTLEMENT, RELEASE, REVERSAL, DEBIT, CREDIT
     amount BIGINT NOT NULL,
     source VARCHAR(20) NOT NULL,             -- API, EVENT, SYSTEM

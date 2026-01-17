@@ -1,2 +1,0 @@
-ALTER TABLE transactions
-ADD COLUMN saga_status VARCHAR(20) DEFAULT 'NOT_STARTED';
