@@ -77,7 +77,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	go h.event.PublishToAccountService(tx, string(domain.StatusBlockRequested), config.KafkaAccountBalanceBlockCmd, context.Background())
 
 	// DEBIT_REQUESTED	REQUESTED
-	h.service.RecordSagaStep(tx.ID, string(domain.SagaBalanceBlocked), domain.STARTED)
+	h.service.UpdateTransactionWithSaga(tx.ID, domain.StatusBlockRequested, domain.STARTED)
 
 	resp := CreateTransactionResponse{
 		TransactionID: tx.ID,
