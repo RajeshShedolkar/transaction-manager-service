@@ -9,7 +9,7 @@ type TransactionService interface {
 	GetTransaction(id string) (*domain.Transaction, []domain.LedgerEntry, error)
 	CreateNEFTTransaction(tx *domain.Transaction) error
 	HandleNEFTSettlement(txID string, status string) error
-	RecordSagaStep(txID, step, status string)
+	RecordSagaStep(tx *domain.Transaction, step, status string)
 	UpdateSagaStatus(txID, status string)
-	UpdateTransactionWithSaga(txID *domain.Transaction, status domain.TransactionStatus, sagaStatus domain.SagaStatus) error
+	UpdateTransactionWithSaga(tx *domain.Transaction, status domain.TransactionStatus, sagaCurrState string) error
 }

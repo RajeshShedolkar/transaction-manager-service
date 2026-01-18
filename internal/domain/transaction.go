@@ -20,6 +20,7 @@ const (
 	StatusNEFTDebited       TransactionStatus = "NEFT_DEBITED"
 	StatusUPIDebited        TransactionStatus = "UPI_DEBITED"
 	StatusCardDebited       TransactionStatus = "CARD_DEBITED"
+	StatusDebitRequested    TransactionStatus = "DEBIT_REQUESTED"
 	StatusIMPSFailed        TransactionStatus = "IMPS_FAILED"
 	StatusNEFTFailed        TransactionStatus = "NEFT_FAILED"
 	StatusUPIFailed         TransactionStatus = "UPI_FAILED"
@@ -61,27 +62,30 @@ type ConsumerDLQEventForCardService struct {
 }
 
 type SagaStatus string
+type SagaSteps string
 
 const (
 	// Initial
-	SagaNotStarted SagaStatus = "NOT_STARTED"
-	SagaInit       SagaStatus = "INITIATED"
+	SagaNotStarted SagaSteps = "NOT_STARTED"
+	SagaInit       SagaSteps = "INITIATED"
 
 	// Account balance orchestration
-	SagaBalanceBlockInProgress SagaStatus = "BALANCE_BLOCK_IN_PROGRESS"
-	SagaBalanceBlocked         SagaStatus = "BALANCE_BLOCKED"
+	SagaBalanceBlocked SagaSteps = "BALANCE_BLOCKE"
 
 	// External network orchestration
-	SagaNetworkRequestInProgress SagaStatus = "NETWORK_REQUEST_IN_PROGRESS"
-	SagaNetworkConfirmed         SagaStatus = "NETWORK_CONFIRMED"
+	SagaNetworkRequested SagaSteps = "NETWORK_REQUESTED"
+	SagaIMPSDebited      SagaSteps = "IMPS_DEBITED"
+	SagaNEFTDebited      SagaSteps = "NEFT_DEBITED"
+	SagaUPIDebited       SagaSteps = "UPI_DEBITED"
+	SagaCardDebited      SagaSteps = "CARD_DEBITED"
+
+	SagaFinalDebitFromAcc SagaSteps = "FINAL_DEBIT_FROM_ACC"
 
 	// Final debit orchestration
-	SagaFinalDebitInProgress SagaStatus = "FINAL_DEBIT_IN_PROGRESS"
-	SagaFinalDebited         SagaStatus = "FINAL_DEBIT_COMPLETED"
+	SagaFinalDebited SagaSteps = "FINAL_DEBIT"
 
 	// Compensation flows
-	SagaReleaseInProgress SagaStatus = "RELEASE_IN_PROGRESS"
-	SagaReleased          SagaStatus = "RELEASE_COMPLETED"
+	SagaRelease SagaSteps = "RELEASE"
 
 	// Terminal states
 	SagaCompleted SagaStatus = "COMPLETED"
@@ -89,6 +93,8 @@ const (
 	SagaTimedOut  SagaStatus = "TIMED_OUT"
 )
 const (
-	STARTED = "STARTED"
-	DONE  = "DONE"
+	SagaStatusStarted    string = "STARTED"
+	SagaStatusInProgress string = "IN_PROGRESS"
+	SagaStatusCompleted  string = "COMPLETED"
+	SagaStatusFailed     string = "FAILED"
 )

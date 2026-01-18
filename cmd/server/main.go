@@ -11,6 +11,7 @@ import (
 	"transaction-manager/internal/api"
 	"transaction-manager/internal/cardservice"
 	"transaction-manager/internal/config"
+	"transaction-manager/internal/domain"
 	"transaction-manager/internal/events"
 	"transaction-manager/internal/kfk"
 	"transaction-manager/internal/repository"
@@ -68,7 +69,8 @@ func main() {
 	brokers := config.KAFKA_BROKERS
 	cardAuthReader := kfk.NewKafkaReader(brokers, config.KAFKA_CARD_EVENT_TOPIC, "tm-card-group")
 	KfkAccountBalanceBlockedReader := kfk.NewKafkaReader(brokers, config.KafkaAccountBalanceBlockedEvt, config.ACC_TM_GROUP)
-
+	kfkNetworkRequestedReader := kfk.NewKafkaReader(brokers, config.KafkaPaymentIMPSDebitSuccessEvt, config.PAYMENT_TM_GROUP)
+	KafkaAccountBalanceDebitedEvtReader := kfk.NewKafkaReader(brokers, config.KafkaAccountBalanceDebitedEvt, config.ACC_TM_GROUP)
 	go kfk.Consume(cardAuthReader, func(msg []byte) {
 
 		eventHandler.HandleCardEventIdempotent(msg, *eventRepo)
@@ -79,6 +81,15 @@ func main() {
 		handler.HandleAccBalBlocked(msg, *eventRepo)
 	})
 
+	go kfk.Consume(kfkNetworkRequestedReader, func(msg []byte) {
+		logger.Log.Info("Payment Network Debit Success event received in TM %s", zap.ByteString("message", msg))
+		handler.HandledPayEvent(msg, domain.StatusIMPSDebited, domain.SagaIMPSDebited, domain.StatusFinalDebitFromAcc, domain.SagaStatus(domain.SagaFinalDebitFromAcc), config.KafkaAccountFinalDebitCmd, *eventRepo)
+	})
+
+	go kfk.Consume(KafkaAccountBalanceDebitedEvtReader, func(msg []byte) {
+		logger.Log.Info("Account Balance Debited event received in TM %s", zap.ByteString("message", msg))
+		handler.HandledPayEvent(msg, domain.StatusCompleted, domain.SagaFinalDebited, domain.StatusCompleted, "", "", *eventRepo)
+	})
 	logger.Log.Info("Kafka idempotent consumer started")
 
 	// ---------- Start HTTP ----------

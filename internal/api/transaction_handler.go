@@ -74,12 +74,12 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 		return
 	}
 
-	// emit event to account servicegit
+	// emit event to account service to request balance block
 
 	go h.event.PublishToAccountService(tx, string(domain.StatusBlockRequested), config.KafkaAccountBalanceBlockCmd, context.Background())
-
+	h.service.RecordSagaStep(tx, string(domain.SagaBalanceBlocked), domain.SagaStatusInProgress)
 	// DEBIT_REQUESTED	REQUESTED
-	h.service.UpdateTransactionWithSaga(tx, domain.StatusBlockRequested, domain.STARTED)
+	h.service.UpdateTransactionWithSaga(tx, domain.StatusBlockRequested, string(domain.SagaBalanceBlocked)+"_"+domain.SagaStatusInProgress)
 
 	resp := CreateTransactionResponse{
 		TransactionID: tx.ID,
@@ -156,9 +156,60 @@ func (h *TransactionHandler) HandleAccBalBlocked(msg []byte, eventRepo repositor
 		)
 		return
 	}
-	h.service.RecordSagaStep(event.TransactionID, string(domain.SagaBalanceBlocked), domain.DONE)
-	h.service.UpdateTransactionWithSaga(Tx, domain.StatusNetworkRequested, domain.SagaNetworkRequestInProgress)
+	h.service.RecordSagaStep(Tx, string(domain.SagaBalanceBlocked), domain.SagaStatusCompleted)
+	h.service.UpdateTransactionWithSaga(Tx, domain.StatusNetworkRequested, domain.SagaStatusInProgress)
 
 	go h.event.PublishToAccountService(Tx, string(domain.StatusNetworkRequested), config.KafkaPaymentIMPSDebitCmd, context.Background())
+	h.service.RecordSagaStep(Tx, string(domain.StatusNetworkRequested), domain.SagaStatusInProgress)
+}
+
+func (h *TransactionHandler) HandledPayEvent(
+	msg []byte,
+	txStatus domain.TransactionStatus,
+	sagaStep domain.SagaSteps,
+	nextState domain.TransactionStatus,
+	nextSagaState domain.SagaStatus,
+	topic string,
+	eventRepo repository.PgxEventRepo) {
+
+	logger.Log.Info("Handling Account Balance Blocked event in TM", zap.ByteString("message", msg))
+
+	// Idempotent processing
+	var event domain.ConsumerEventForAccountService
+	err := json.Unmarshal(msg, &event)
+	if err != nil {
+		logger.Log.Error("EVENT_UNMARSHAL_FAILED", zap.Error(err))
+		return
+	}
+
+	processed, err := eventRepo.IsProcessed(event.EventID)
+	if err != nil {
+		logger.Log.Error("IDEMPOTENCY_CHECK_FAILED", zap.Error(err))
+		return
+	}
+	if processed {
+		logger.Log.Info("DUPLICATE_EVENT_IGNORED - Update Tx and SagaState", zap.String("event_id", event.EventID))
+		return
+	}
+
+	logger.Log.Info("",
+		zap.String("event_id", event.EventID),
+		zap.String("event_type", event.EventType),
+	)
+	Tx, _, err := h.service.GetTransaction(event.TransactionID)
+	if err != nil {
+		logger.Log.Error("TRANSACTION_NOT_FOUND_FOR_EVENT",
+			zap.String("event_id", event.EventID),
+			zap.String("tx_id", event.TransactionID),
+		)
+		return
+	}
+	h.service.RecordSagaStep(Tx, string(sagaStep), domain.SagaStatusCompleted)
+	h.service.UpdateTransactionWithSaga(Tx, txStatus, string(sagaStep)+"_"+domain.SagaStatusCompleted)
+	if txStatus != domain.StatusCompleted {
+		go h.event.PublishToAccountService(Tx, string(txStatus), topic, context.Background())
+		go h.service.RecordSagaStep(Tx, string(nextSagaState), domain.SagaStatusInProgress)
+		h.service.UpdateTransactionWithSaga(Tx, nextState, string(nextSagaState)+"_"+domain.SagaStatusInProgress)
+	}
 
 }

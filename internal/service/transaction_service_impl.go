@@ -78,7 +78,7 @@ func (s *TransactionServiceImpl) CreateImmediateTransaction(tx *domain.Transacti
 	}
 	logger.Log.Info("IMMEDIATE_TRANSACTION_INIT_SUCCESSFULLY", zap.String("transaction_id", tx.ID))
 	// 6. Append saga step
-	s.RecordSagaStep(tx.ID, string(domain.SagaInit), domain.STARTED)
+	s.RecordSagaStep(tx, string(domain.SagaInit), domain.SagaStatusStarted)
 
 	return nil
 }
@@ -175,22 +175,27 @@ func (s *TransactionServiceImpl) HandleNEFTSettlement(txID string, status string
 	return s.ledgerRepo.Append(ledger)
 }
 
-func (s *TransactionServiceImpl) RecordSagaStep(txID, step, status string) {
-	_ = s.sagaRepo.AddStep(&domain.SagaStep{
+func (s *TransactionServiceImpl) RecordSagaStep(tx *domain.Transaction, step, status string) {
+	err := s.sagaRepo.AddStep(&domain.SagaStep{
 		ID:            uuid.New().String(),
-		TransactionID: txID,
+		TransactionID: tx.ID,
 		StepName:      step,
 		Status:        status,
+		TxState:      string(tx.Status),
 	})
-	logger.Log.Info("SAGA_STEP_RECORDED", zap.String("transaction_id", txID), zap.String("step", step), zap.String("status", status))
+	if err != nil {
+		logger.Log.Error("RECORDING_SAGA_STEP_FAILED", zap.Error(err))
+		return
+	}
+	logger.Log.Info("SAGA_STEP_RECORDED", zap.String("transaction_id", tx.ID), zap.String("step", step), zap.String("status", status))
 }
 
 func (s *TransactionServiceImpl) UpdateSagaStatus(txID, status string) {
 	_ = s.sagaRepo.UpdateSagaStatus(txID, status)
 }
 
-func (s *TransactionServiceImpl) UpdateTransactionWithSaga(txID *domain.Transaction, status domain.TransactionStatus, sagaStatus domain.SagaStatus) error {
-	err := s.txRepo.UpdateStatusWithSaga(txID.ID, status, sagaStatus)
+func (s *TransactionServiceImpl) UpdateTransactionWithSaga(txID *domain.Transaction, status domain.TransactionStatus, sagaCurrState string) error {
+	err := s.txRepo.UpdateStatusWithSaga(txID.ID, status, sagaCurrState)
 	if err != nil {
 		return err
 	}

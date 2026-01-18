@@ -18,12 +18,13 @@ func NewPgxSagaRepo(db *pgxpool.Pool) *PgxSagaRepo {
 func (r *PgxSagaRepo) AddStep(step *domain.SagaStep) error {
 	_, err := r.db.Exec(context.Background(),
 		`INSERT INTO saga_steps
-		 (id, transaction_id, step_name, status)
-		 VALUES ($1,$2,$3,$4)`,
+		 (id, transaction_id, step_name, status, tx_state)
+		 VALUES ($1,$2,$3,$4, $5)`,
 		step.ID,
 		step.TransactionID,
 		step.StepName,
 		step.Status,
+		step.TxState,
 	)
 	return err
 }

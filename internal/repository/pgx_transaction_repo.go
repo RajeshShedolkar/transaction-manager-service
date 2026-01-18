@@ -72,7 +72,7 @@ func (r *PgxTransactionRepo) FindByNetworkTxnID(id string) (*domain.Transaction,
 	return &tx, nil
 }
 
-func (r *PgxTransactionRepo) UpdateStatusWithSaga(id string, status domain.TransactionStatus, sagaStatus domain.SagaStatus) error {
+func (r *PgxTransactionRepo) UpdateStatusWithSaga(id string, status domain.TransactionStatus, sagaStatus string) error {
 	_, err := r.db.Exec(context.Background(),
 		`UPDATE transactions SET status=$1, saga_status=$2, updated_at=NOW() WHERE id=$3`,
 		status, sagaStatus, id,
