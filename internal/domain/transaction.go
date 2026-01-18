@@ -30,6 +30,9 @@ const (
 	StatusNetworkDebitFailed TransactionStatus = "NETWORK_DEBIT_FAILED"
 	StatusReleaseeHold       TransactionStatus = "RELEASE_ON_HOLD"
 	StatusFinalDebitFromAcc  TransactionStatus = "FINAL_DEBIT_FROM_ACC"
+	StatusCompensation       TransactionStatus = "FINALIZED"
+	StatusNetworkFailed      TransactionStatus = "TXN_FAILED"
+	StatusIMPSCompleted      TransactionStatus = "IMPS_TXN_COMLETED"
 )
 
 type Transaction struct {
@@ -87,7 +90,8 @@ const (
 	SagaFinalDebited SagaSteps = "FINAL_DEBIT"
 
 	// Compensation flows
-	SagaRelease SagaSteps = "RELEASE"
+	SagaRelease      SagaSteps = "RELEASE"
+	SagaCompensation SagaSteps = "COMPENSATION"
 
 	// Terminal states
 	SagaCompleted SagaStatus = "COMPLETED"
@@ -122,14 +126,13 @@ var TransactionStatusToLedger = map[TransactionStatus]LedgerEntryType{
 	StatusUPIDebited:  LedgerDebit,
 	StatusCardDebited: LedgerDebit,
 
-	StatusFinalDebitFromAcc: LedgerDebit,
-
 	// Settlement
 	StatusCompleted: LedgerSettlement,
 
 	// Compensation
-	StatusReleased:     LedgerRelease,
-	StatusReleaseeHold: LedgerRelease,
+	StatusReleased:          LedgerRelease,
+	StatusReleaseeHold:      LedgerRelease,
+	StatusReleasedRequested: LedgerRelease,
 
 	StatusRefunded: LedgerRefund,
 
@@ -141,7 +144,10 @@ var TransactionStatusToLedger = map[TransactionStatus]LedgerEntryType{
 	StatusUPIFailed:  LedgerReversal,
 	StatusCardFailed: LedgerReversal,
 
-	StatusNetworkTimedOut: LedgerReversal,
+	StatusNetworkTimedOut:   LedgerRelease,
+	StatusFinalDebitFromAcc: LedgerHoldPlaced,
+	StatusNetworkFailed:     LedgerFinalized,
+	StatusIMPSCompleted:     LedgerFinalized,
 }
 
 const (

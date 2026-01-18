@@ -21,9 +21,11 @@ const (
 	LedgerSettlement LedgerEntryType = "SETTLEMENT"
 
 	// Compensation flows
-	LedgerRelease  LedgerEntryType = "RELEASE"  // unblock hold
-	LedgerReversal LedgerEntryType = "REVERSAL" // debit reversed
-	LedgerRefund   LedgerEntryType = "REFUND"   // user-visible refund
+	LedgerRelease    LedgerEntryType = "RELEASE_ON_HOLD" // unblock hold
+	LedgerReversal   LedgerEntryType = "REVERSAL"        // debit reversed
+	LedgerRefund     LedgerEntryType = "REFUND"          // user-visible refund
+	LedgerFinalized  LedgerEntryType = "FINALIZED"
+	LedgerHoldPlaced LedgerEntryType = "HOLD_PLACED"
 )
 
 type LedgerEntry struct {

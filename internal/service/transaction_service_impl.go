@@ -205,8 +205,9 @@ func (s *TransactionServiceImpl) UpdateTransactionWithSaga(Tx *domain.Transactio
 		return err
 	}
 	if IsCompletedState(sagaCurrState) || sagaCurrState == "FAILED" {
-		v, _ := domain.TransactionStatusToLedger[status]
 		Tx.Status = status
+		v, _ := domain.TransactionStatusToLedger[status]
+
 		l_err := s.ledgerRepo.Append(&domain.LedgerEntry{
 			ID:            uuid.New().String(),
 			TransactionID: Tx.ID,
@@ -225,7 +226,7 @@ func (s *TransactionServiceImpl) UpdateTransactionWithSaga(Tx *domain.Transactio
 }
 
 func IsCompletedState(s string) bool {
-	return strings.HasSuffix(s, "COMPLETED")
+	return strings.HasSuffix(s, "COMPLETED") || strings.HasSuffix(s, "DONE") || strings.HasSuffix(s, "FAILED")
 }
 
 func (s *TransactionServiceImpl) GetTransactionLedger(id string) (*domain.Transaction, []domain.LedgerEntry, error) {

@@ -77,6 +77,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 	// emit event to account service to request balance block
 
 	go h.event.PublishToAccountService(tx, string(domain.StatusBlockRequested), config.KafkaAccountBalanceBlockCmd, context.Background())
+	tx.Status = domain.StatusBlockRequested
 	h.service.RecordSagaStep(tx, string(domain.SagaBalanceBlocked), domain.SagaStatusInProgress)
 	// DEBIT_REQUESTED	REQUESTED
 	h.service.UpdateTransactionWithSaga(tx, domain.StatusBlockRequested, string(domain.SagaBalanceBlocked)+"_"+domain.SagaStatusInProgress)
@@ -218,6 +219,7 @@ func (h *TransactionHandler) HandledPayEvent(
 	}
 
 	// Complete current saga step
+	tx.Status = currTxStatus
 	h.service.RecordSagaStep(tx, string(currSagaStep), currSagaStatus)
 	h.service.UpdateTransactionWithSaga(
 		tx,
@@ -229,7 +231,7 @@ func (h *TransactionHandler) HandledPayEvent(
 	go h.event.PublishToAccountService(tx, string(currTxStatus), topic, context.Background())
 
 	updateState := string(nextSagaState) + "." + nextSagaStatus
-
+	tx.Status = nextState
 	h.service.UpdateTransactionWithSaga(tx, nextState, updateState)
 	go h.service.RecordSagaStep(tx, string(nextSagaState), nextSagaStatus)
 }

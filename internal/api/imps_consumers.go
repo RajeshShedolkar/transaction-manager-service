@@ -83,10 +83,10 @@ func StartConsumers(
 		logger.Log.Info("Account Balance Debited event received in TM %s", zap.ByteString("message", msg))
 		handler.HandledPayEvent(
 			msg,
-			domain.StatusCompleted,
+			domain.StatusFinalDebitFromAcc,
 			domain.SagaFinalDebitFromAcc,
 			domain.COMPLETED,
-			domain.StatusCompleted,
+			domain.StatusIMPSCompleted,
 			"DONE",
 			domain.COMPLETED,
 			"",
@@ -101,24 +101,24 @@ func StartConsumers(
 			msg,
 			domain.StatusNetworkDebitFailed,
 			domain.SagaNetworkRequested,
-			"",
+			domain.FAILED,
 			domain.StatusReleasedRequested,
 			domain.SagaRelease,
-			"",
+			domain.IN_PROGRESS,
 			config.KafkaAccountReleaseHoldCmd,
 			*eventRepo)
 	})
 
 	go kfk.Consume(kfkNetworkRequestedTimedOutReader, func(msg []byte) {
-		logger.Log.Info("Payment Network is emiting debit-failed and ready for debit received in TM %s", zap.ByteString("message", msg))
+		logger.Log.Info("Payment Network is emiting debit-timedout and ready for debit received in TM %s", zap.ByteString("message", msg))
 		handler.HandledPayEvent(
 			msg,
 			domain.StatusNetworkTimedOut,
 			domain.SagaNetworkRequested,
-			"",
+			domain.FAILED,
 			domain.StatusReleasedRequested,
 			domain.SagaRelease,
-			"",
+			domain.IN_PROGRESS,
 			config.KafkaAccountReleaseHoldCmd,
 			*eventRepo)
 	})
@@ -130,10 +130,10 @@ func StartConsumers(
 			msg,
 			domain.StatusReleasedRequested,
 			domain.SagaRelease,
-			"",
-			domain.StatusFailed,
-			"",
-			"",
+			domain.COMPLETED,
+			domain.StatusNetworkFailed,
+			domain.SagaCompensation,
+			domain.COMPLETED,
 			"Notify to downstream consumer / account service",
 			*eventRepo)
 	})
@@ -144,10 +144,10 @@ func StartConsumers(
 			msg,
 			domain.StatusReleasedRequested,
 			domain.SagaRelease,
-			"",
-			domain.StatusFailed,
-			"",
-			"",
+			domain.COMPLETED,
+			domain.StatusNetworkFailed,
+			domain.SagaCompensation,
+			domain.COMPLETED,
 			"Notify to downstream consumner/ acc service",
 			*eventRepo)
 	})
