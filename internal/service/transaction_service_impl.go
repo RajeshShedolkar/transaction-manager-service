@@ -4,6 +4,8 @@ import (
 	//"errors"
 	//"time"
 
+	"strings"
+
 	"github.com/google/uuid"
 	"go.uber.org/zap"
 
@@ -201,18 +203,41 @@ func (s *TransactionServiceImpl) UpdateTransactionWithSaga(txID *domain.Transact
 		logger.Log.Error("UPDATING_TRANSACTION_WITH_SAGA_FAILED", zap.Error(err))
 		return err
 	}
-	l_err := s.ledgerRepo.Append(&domain.LedgerEntry{
-		ID:            uuid.New().String(),
-		TransactionID: txID.ID,
-		AccountRefId:  txID.SourceRefId,
-		DcFlag:        txID.DcFlag,
-		EntryType:     domain.LedgerBlock,
-		Amount:        txID.Amount,
-		Source:        "Event",
-	})
-	if l_err != nil {
-		logger.Log.Error("APPENDING_LEDGER_ENTRY_FAILED", zap.Error(l_err))
-		return l_err
+	if IsCompletedState(sagaCurrState) || sagaCurrState == "FAILED" {
+		v, _ := domain.TransactionStatusToLedger[status]
+		l_err := s.ledgerRepo.Append(&domain.LedgerEntry{
+			ID:            uuid.New().String(),
+			TransactionID: txID.ID,
+			AccountRefId:  txID.SourceRefId,
+			DcFlag:        txID.DcFlag,
+			EntryType:     v,
+			Amount:        txID.Amount,
+			Source:        "Event",
+		})
+		if l_err != nil {
+			logger.Log.Error("APPENDING_LEDGER_ENTRY_FAILED", zap.Error(l_err))
+			return l_err
+		}
 	}
 	return nil
+}
+
+func IsCompletedState(s string) bool {
+	return strings.HasSuffix(s, "COMPLETED")
+}
+
+func (s *TransactionServiceImpl) GetTransactionLedger(id string) (*domain.Transaction, []domain.LedgerEntry, error) {
+
+	tx, err := s.txRepo.FindByID(id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	ledger, errL := s.ledgerRepo.FindByTransactionID(id)
+	if errL != nil {
+		return nil, nil, err
+	}
+	//ledger = append(ledger, )
+
+	return tx, ledger, nil
 }

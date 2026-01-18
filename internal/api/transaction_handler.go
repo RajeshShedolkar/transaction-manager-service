@@ -96,7 +96,7 @@ func (h *TransactionHandler) GetTransaction(c *gin.Context) {
 
 	id := c.Param("id")
 
-	tx, ledger, err := h.service.GetTransaction(id)
+	tx, ledger, err := h.service.GetTransactionLedger(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found"})
 		return
@@ -220,7 +220,7 @@ func (h *TransactionHandler) HandledPayEvent(
 	h.service.UpdateTransactionWithSaga(
 		tx,
 		txStatus,
-		string(sagaStep)+"_"+domain.SagaStatusCompleted,
+		string(sagaStep)+"."+domain.SagaStatusCompleted,
 	)
 
 	// Publish event

@@ -98,3 +98,48 @@ const (
 	SagaStatusCompleted  string = "COMPLETED"
 	SagaStatusFailed     string = "FAILED"
 )
+
+
+
+var TransactionStatusToLedger = map[TransactionStatus]LedgerEntryType{
+
+	// Lifecycle
+	StatusInitiated: LedgerInit,
+
+	// Authorization / Hold
+	StatusAuthorized:     LedgerAuth,
+	StatusBlockRequested: LedgerBlock,
+	StatusBlocked:        LedgerBlock,
+
+	// Network / Processing
+	StatusProcessing:       LedgerProcess,
+	StatusNetworkRequested: LedgerProcess,
+	StatusNetworkConfirmed: LedgerProcess,
+
+	// Final Debit (by channel)
+	StatusIMPSDebited: LedgerDebit,
+	StatusNEFTDebited: LedgerDebit,
+	StatusUPIDebited:  LedgerDebit,
+	StatusCardDebited: LedgerDebit,
+
+	StatusFinalDebitFromAcc: LedgerDebit,
+
+	// Settlement
+	StatusCompleted: LedgerSettlement,
+
+	// Compensation
+	StatusReleased: LedgerRelease,
+	StatusReleaseeHold: LedgerRelease,
+
+	StatusRefunded: LedgerRefund,
+
+	StatusFailed:   LedgerReversal,
+	StatusTimedOut: LedgerReversal,
+
+	StatusIMPSFailed: LedgerReversal,
+	StatusNEFTFailed: LedgerReversal,
+	StatusUPIFailed:  LedgerReversal,
+	StatusCardFailed: LedgerReversal,
+
+	StatusNetworkTimedOut: LedgerReversal,
+}
