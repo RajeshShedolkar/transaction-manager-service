@@ -50,6 +50,7 @@ var AccountEventTopics = []string{
 // ======================================================
 
 const (
+	KafkaPaymentNetwork = "payment.commands.debit"
 	KafkaPaymentIMPSDebitCmd = "payment.commands.debit"
 )
 

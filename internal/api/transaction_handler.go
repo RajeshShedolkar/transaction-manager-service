@@ -165,10 +165,12 @@ func (h *TransactionHandler) HandleAccBalBlocked(msg []byte, eventRepo repositor
 
 func (h *TransactionHandler) HandledPayEvent(
 	msg []byte,
-	txStatus domain.TransactionStatus,
-	sagaStep domain.SagaSteps,
+	currTxStatus domain.TransactionStatus,
+	currSagaStep domain.SagaSteps,
+	currSagaStatus string,
 	nextState domain.TransactionStatus,
 	nextSagaState domain.SagaSteps,
+	nextSagaStatus string,
 	topic string,
 	eventRepo repository.PgxEventRepo,
 ) {
@@ -216,29 +218,18 @@ func (h *TransactionHandler) HandledPayEvent(
 	}
 
 	// Complete current saga step
-	h.service.RecordSagaStep(tx, string(sagaStep), domain.SagaStatusCompleted)
+	h.service.RecordSagaStep(tx, string(currSagaStep), currSagaStatus)
 	h.service.UpdateTransactionWithSaga(
 		tx,
-		txStatus,
-		string(sagaStep)+"."+domain.SagaStatusCompleted,
+		currTxStatus,
+		string(currSagaStep)+"."+currSagaStatus,
 	)
 
 	// Publish event
-	go h.event.PublishToAccountService(tx, string(txStatus), topic, context.Background())
+	go h.event.PublishToAccountService(tx, string(currTxStatus), topic, context.Background())
 
-	// Prepare next saga state
-	var sagaStatus string
-	var updateState string
-	if txStatus == "COMPLETED" {
-		sagaStatus = domain.SagaStatusCompleted
-		tx.Status = "COMPLETED"
-		updateState = "DONE"
-
-	} else {
-		sagaStatus = domain.SagaStatusInProgress
-		updateState = string(nextSagaState) + "." + sagaStatus
-	}
+	updateState := string(nextSagaState) + "." + nextSagaStatus
 
 	h.service.UpdateTransactionWithSaga(tx, nextState, updateState)
-	go h.service.RecordSagaStep(tx, string(nextSagaState), sagaStatus)
+	go h.service.RecordSagaStep(tx, string(nextSagaState), nextSagaStatus)
 }

@@ -196,22 +196,24 @@ func (s *TransactionServiceImpl) UpdateSagaStatus(txID, status string) {
 	_ = s.sagaRepo.UpdateSagaStatus(txID, status)
 }
 
-func (s *TransactionServiceImpl) UpdateTransactionWithSaga(txID *domain.Transaction, status domain.TransactionStatus, sagaCurrState string) error {
-	logger.Log.Info("UPDATING_TRANSACTION_WITH_SAGA", zap.String("transaction_id", txID.ID), zap.String("new_status", string(status)), zap.String("saga_state", sagaCurrState))
-	err := s.txRepo.UpdateStatusWithSaga(txID.ID, status, sagaCurrState)
+func (s *TransactionServiceImpl) UpdateTransactionWithSaga(Tx *domain.Transaction, status domain.TransactionStatus, sagaCurrState string) error {
+	logger.Log.Info("UPDATING_TRANSACTION_WITH_SAGA", zap.String("transaction_id", Tx.ID), zap.String("new_status", string(status)), zap.String("saga_state", sagaCurrState))
+
+	err := s.txRepo.UpdateStatusWithSaga(Tx.ID, status, sagaCurrState)
 	if err != nil {
 		logger.Log.Error("UPDATING_TRANSACTION_WITH_SAGA_FAILED", zap.Error(err))
 		return err
 	}
 	if IsCompletedState(sagaCurrState) || sagaCurrState == "FAILED" {
 		v, _ := domain.TransactionStatusToLedger[status]
+		Tx.Status = status
 		l_err := s.ledgerRepo.Append(&domain.LedgerEntry{
 			ID:            uuid.New().String(),
-			TransactionID: txID.ID,
-			AccountRefId:  txID.SourceRefId,
-			DcFlag:        txID.DcFlag,
+			TransactionID: Tx.ID,
+			AccountRefId:  Tx.SourceRefId,
+			DcFlag:        Tx.DcFlag,
 			EntryType:     v,
-			Amount:        txID.Amount,
+			Amount:        Tx.Amount,
 			Source:        "Event",
 		})
 		if l_err != nil {

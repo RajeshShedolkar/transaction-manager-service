@@ -3,31 +3,33 @@ package domain
 type TransactionStatus string
 
 const (
-	StatusInitiated         TransactionStatus = "INITIATED"
-	StatusPending           TransactionStatus = "PENDING"
-	StatusAuthorized        TransactionStatus = "AUTHORIZED"
-	StatusProcessing        TransactionStatus = "PROCESSING"
-	StatusCompleted         TransactionStatus = "COMPLETED"
-	StatusFailed            TransactionStatus = "FAILED"
-	StatusReleased          TransactionStatus = "RELEASED"
-	StatusTimedOut          TransactionStatus = "TIMED_OUT"
-	StatusRefunded          TransactionStatus = "REFUNDED"
-	StatusBlockRequested    TransactionStatus = "BLOCK_REQUESTED"
-	StatusBlocked           TransactionStatus = "BLOCKED"
-	StatusNetworkRequested  TransactionStatus = "NETWORK_REQUESTED"
-	StatusNetworkConfirmed  TransactionStatus = "NETWORK_CONFIRMED"
-	StatusIMPSDebited       TransactionStatus = "IMPS_DEBITED"
-	StatusNEFTDebited       TransactionStatus = "NEFT_DEBITED"
-	StatusUPIDebited        TransactionStatus = "UPI_DEBITED"
-	StatusCardDebited       TransactionStatus = "CARD_DEBITED"
-	StatusDebitRequested    TransactionStatus = "DEBIT_REQUESTED"
-	StatusIMPSFailed        TransactionStatus = "IMPS_FAILED"
-	StatusNEFTFailed        TransactionStatus = "NEFT_FAILED"
-	StatusUPIFailed         TransactionStatus = "UPI_FAILED"
-	StatusCardFailed        TransactionStatus = "CARD_FAILED"
-	StatusNetworkTimedOut   TransactionStatus = "NETWORK_TIMED_OUT"
-	StatusReleaseeHold      TransactionStatus = "RELEASE_ON_HOLD"
-	StatusFinalDebitFromAcc TransactionStatus = "FINAL_DEBIT_FROM_ACC"
+	StatusInitiated          TransactionStatus = "INITIATED"
+	StatusPending            TransactionStatus = "PENDING"
+	StatusAuthorized         TransactionStatus = "AUTHORIZED"
+	StatusProcessing         TransactionStatus = "PROCESSING"
+	StatusCompleted          TransactionStatus = "COMPLETED"
+	StatusFailed             TransactionStatus = "FAILED"
+	StatusReleasedRequested  TransactionStatus = "RELEASED_REQUESTED"
+	StatusReleased           TransactionStatus = "RELEASED"
+	StatusTimedOut           TransactionStatus = "TIMED_OUT"
+	StatusRefunded           TransactionStatus = "REFUNDED"
+	StatusBlockRequested     TransactionStatus = "BLOCK_REQUESTED"
+	StatusBlocked            TransactionStatus = "BLOCKED"
+	StatusNetworkRequested   TransactionStatus = "NETWORK_REQUESTED"
+	StatusNetworkConfirmed   TransactionStatus = "NETWORK_CONFIRMED"
+	StatusIMPSDebited        TransactionStatus = "IMPS_DEBITED"
+	StatusNEFTDebited        TransactionStatus = "NEFT_DEBITED"
+	StatusUPIDebited         TransactionStatus = "UPI_DEBITED"
+	StatusCardDebited        TransactionStatus = "CARD_DEBITED"
+	StatusDebitRequested     TransactionStatus = "DEBIT_REQUESTED"
+	StatusIMPSFailed         TransactionStatus = "IMPS_FAILED"
+	StatusNEFTFailed         TransactionStatus = "NEFT_FAILED"
+	StatusUPIFailed          TransactionStatus = "UPI_FAILED"
+	StatusCardFailed         TransactionStatus = "CARD_FAILED"
+	StatusNetworkTimedOut    TransactionStatus = "NETWORK_TIMED_OUT"
+	StatusNetworkDebitFailed TransactionStatus = "NETWORK_DEBIT_FAILED"
+	StatusReleaseeHold       TransactionStatus = "RELEASE_ON_HOLD"
+	StatusFinalDebitFromAcc  TransactionStatus = "FINAL_DEBIT_FROM_ACC"
 )
 
 type Transaction struct {
@@ -70,7 +72,7 @@ const (
 	SagaInit       SagaSteps = "INITIATED"
 
 	// Account balance orchestration
-	SagaBalanceBlocked SagaSteps = "BALANCE_BLOCKE"
+	SagaBalanceBlocked SagaSteps = "BALANCE_BLOCK"
 
 	// External network orchestration
 	SagaNetworkRequested SagaSteps = "NETWORK_REQUESTED"
@@ -99,8 +101,6 @@ const (
 	SagaStatusFailed     string = "FAILED"
 )
 
-
-
 var TransactionStatusToLedger = map[TransactionStatus]LedgerEntryType{
 
 	// Lifecycle
@@ -128,7 +128,7 @@ var TransactionStatusToLedger = map[TransactionStatus]LedgerEntryType{
 	StatusCompleted: LedgerSettlement,
 
 	// Compensation
-	StatusReleased: LedgerRelease,
+	StatusReleased:     LedgerRelease,
 	StatusReleaseeHold: LedgerRelease,
 
 	StatusRefunded: LedgerRefund,
@@ -143,3 +143,9 @@ var TransactionStatusToLedger = map[TransactionStatus]LedgerEntryType{
 
 	StatusNetworkTimedOut: LedgerReversal,
 }
+
+const (
+	COMPLETED   string = "COMPLETED"
+	IN_PROGRESS string = "IN_PROGRESS"
+	FAILED      string = "FAILED"
+)
