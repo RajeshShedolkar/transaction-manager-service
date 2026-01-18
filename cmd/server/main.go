@@ -83,12 +83,26 @@ func main() {
 
 	go kfk.Consume(kfkNetworkRequestedReader, func(msg []byte) {
 		logger.Log.Info("Payment Network Debit Success event received in TM %s", zap.ByteString("message", msg))
-		handler.HandledPayEvent(msg, domain.StatusIMPSDebited, domain.SagaIMPSDebited, domain.StatusFinalDebitFromAcc, domain.SagaStatus(domain.SagaFinalDebitFromAcc), config.KafkaAccountFinalDebitCmd, *eventRepo)
+		handler.HandledPayEvent(
+			msg,
+			domain.StatusIMPSDebited,
+			domain.SagaIMPSDebited,
+			domain.StatusFinalDebitFromAcc,
+			domain.SagaFinalDebitFromAcc,
+			config.KafkaAccountFinalDebitCmd,
+			*eventRepo)
 	})
 
 	go kfk.Consume(KafkaAccountBalanceDebitedEvtReader, func(msg []byte) {
 		logger.Log.Info("Account Balance Debited event received in TM %s", zap.ByteString("message", msg))
-		handler.HandledPayEvent(msg, domain.StatusCompleted, domain.SagaFinalDebited, domain.StatusCompleted, "", "", *eventRepo)
+		handler.HandledPayEvent(
+			msg,
+			domain.StatusCompleted,
+			domain.SagaFinalDebited,
+			domain.StatusCompleted,
+			"DONE",
+			"",
+			*eventRepo)
 	})
 	logger.Log.Info("Kafka idempotent consumer started")
 

@@ -1,6 +1,9 @@
 package logger
 
-import "go.uber.org/zap"
+import (
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+)
 
 var Log *zap.Logger
 
@@ -10,7 +13,7 @@ func Init(env string) error {
 	if env == "prod" {
 		Log, err = zap.NewProduction()
 	} else {
-		Log, err = zap.NewDevelopment()
+		Log, err = newDevLogger()
 	}
 
 	if err != nil {
@@ -18,4 +21,10 @@ func Init(env string) error {
 	}
 	zap.ReplaceGlobals(Log)
 	return nil
+}
+
+func newDevLogger() (*zap.Logger, error) {
+	cfg := zap.NewDevelopmentConfig()
+	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	return cfg.Build()
 }

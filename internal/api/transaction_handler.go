@@ -168,7 +168,7 @@ func (h *TransactionHandler) HandledPayEvent(
 	txStatus domain.TransactionStatus,
 	sagaStep domain.SagaSteps,
 	nextState domain.TransactionStatus,
-	nextSagaState domain.SagaStatus,
+	nextSagaState domain.SagaSteps,
 	topic string,
 	eventRepo repository.PgxEventRepo) {
 
@@ -206,10 +206,16 @@ func (h *TransactionHandler) HandledPayEvent(
 	}
 	h.service.RecordSagaStep(Tx, string(sagaStep), domain.SagaStatusCompleted)
 	h.service.UpdateTransactionWithSaga(Tx, txStatus, string(sagaStep)+"_"+domain.SagaStatusCompleted)
-	if txStatus != domain.StatusCompleted {
+	if txStatus != "COMPLETED" {
 		go h.event.PublishToAccountService(Tx, string(txStatus), topic, context.Background())
+		us := string(nextSagaState) + "." + domain.SagaStatusInProgress
+		h.service.UpdateTransactionWithSaga(Tx, nextState, us)
 		go h.service.RecordSagaStep(Tx, string(nextSagaState), domain.SagaStatusInProgress)
-		h.service.UpdateTransactionWithSaga(Tx, nextState, string(nextSagaState)+"_"+domain.SagaStatusInProgress)
+	} else {
+		go h.event.PublishToAccountService(Tx, string(txStatus), topic, context.Background())
+		us := string(nextSagaState) + "." + domain.SagaStatusCompleted
+		h.service.UpdateTransactionWithSaga(Tx, nextState, us)
+		go h.service.RecordSagaStep(Tx, string(nextSagaState), domain.SagaStatusCompleted)
 	}
 
 }

@@ -90,12 +90,12 @@ func (s *TransactionServiceImpl) GetTransaction(id string) (*domain.Transaction,
 		return nil, nil, err
 	}
 
-	ledger, err := s.ledgerRepo.FindByTransactionID(id)
-	if err != nil {
-		return nil, nil, err
-	}
+	// ledger, err := s.ledgerRepo.FindByTransactionID(id)
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
 
-	return tx, ledger, nil
+	return tx, nil, nil
 }
 
 func (s *TransactionServiceImpl) CreateNEFTTransaction(tx *domain.Transaction) error {
@@ -181,7 +181,7 @@ func (s *TransactionServiceImpl) RecordSagaStep(tx *domain.Transaction, step, st
 		TransactionID: tx.ID,
 		StepName:      step,
 		Status:        status,
-		TxState:      string(tx.Status),
+		TxState:       string(tx.Status),
 	})
 	if err != nil {
 		logger.Log.Error("RECORDING_SAGA_STEP_FAILED", zap.Error(err))
@@ -195,8 +195,10 @@ func (s *TransactionServiceImpl) UpdateSagaStatus(txID, status string) {
 }
 
 func (s *TransactionServiceImpl) UpdateTransactionWithSaga(txID *domain.Transaction, status domain.TransactionStatus, sagaCurrState string) error {
+	logger.Log.Info("^^^^^^^^^^^^^^^^^^^^UPDATING_TRANSACTION_WITH_SAGA", zap.String("transaction_id", txID.ID), zap.String("new_status", string(status)), zap.String("saga_state", sagaCurrState))
 	err := s.txRepo.UpdateStatusWithSaga(txID.ID, status, sagaCurrState)
 	if err != nil {
+		logger.Log.Error("UPDATING_TRANSACTION_WITH_SAGA_FAILED", zap.Error(err))
 		return err
 	}
 	l_err := s.ledgerRepo.Append(&domain.LedgerEntry{
