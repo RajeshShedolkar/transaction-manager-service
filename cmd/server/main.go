@@ -78,7 +78,27 @@ func main() {
 
 	go kfk.Consume(KfkAccountBalanceBlockedReader, func(msg []byte) {
 		logger.Log.Info("Account Balance Blocked event received in TM %s", zap.ByteString("message", msg))
-		handler.HandleAccBalBlocked(msg, *eventRepo)
+		// handler.HandleAccBalBlocked(msg, *eventRepo)
+		handler.HandledPayEvent(
+			msg,
+			domain.StatusBlockRequested,
+			domain.SagaBalanceBlocked,
+			domain.StatusNetworkRequested,
+			domain.SagaNetworkRequested,
+			config.KafkaPaymentIMPSDebitCmd,
+			*eventRepo)
+	})
+
+	go kfk.Consume(kfkNetworkRequestedReader, func(msg []byte) {
+		logger.Log.Info("Payment Network confirms Success event and ready for debit received in TM %s", zap.ByteString("message", msg))
+		handler.HandledPayEvent(
+			msg,
+			domain.StatusNetworkRequested,
+			domain.SagaNetworkRequested,
+			domain.StatusIMPSDebited,
+			domain.SagaIMPSDebited,
+			config.KafkaPaymentIMPSDebitCmd,
+			*eventRepo)
 	})
 
 	go kfk.Consume(kfkNetworkRequestedReader, func(msg []byte) {
@@ -98,7 +118,7 @@ func main() {
 		handler.HandledPayEvent(
 			msg,
 			domain.StatusCompleted,
-			domain.SagaFinalDebited,
+			domain.SagaFinalDebitFromAcc,
 			domain.StatusCompleted,
 			"DONE",
 			"",

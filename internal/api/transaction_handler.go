@@ -170,52 +170,75 @@ func (h *TransactionHandler) HandledPayEvent(
 	nextState domain.TransactionStatus,
 	nextSagaState domain.SagaSteps,
 	topic string,
-	eventRepo repository.PgxEventRepo) {
+	eventRepo repository.PgxEventRepo,
+) {
+	logger.Log.Info(
+		"Handling Account Balance Blocked event in TM",
+		zap.ByteString("message", msg),
+	)
 
-	logger.Log.Info("Handling Account Balance Blocked event in TM", zap.ByteString("message", msg))
-
-	// Idempotent processing
+	// Unmarshal event
 	var event domain.ConsumerEventForAccountService
-	err := json.Unmarshal(msg, &event)
-	if err != nil {
+	if err := json.Unmarshal(msg, &event); err != nil {
 		logger.Log.Error("EVENT_UNMARSHAL_FAILED", zap.Error(err))
 		return
 	}
 
+	// Idempotency check
 	processed, err := eventRepo.IsProcessed(event.EventID)
 	if err != nil {
 		logger.Log.Error("IDEMPOTENCY_CHECK_FAILED", zap.Error(err))
 		return
 	}
 	if processed {
-		logger.Log.Info("DUPLICATE_EVENT_IGNORED - Update Tx and SagaState", zap.String("event_id", event.EventID))
+		logger.Log.Info(
+			"DUPLICATE_EVENT_IGNORED - Update Tx and SagaState",
+			zap.String("event_id", event.EventID),
+		)
 		return
 	}
 
-	logger.Log.Info("",
+	logger.Log.Info(
+		"EVENT_RECEIVED",
 		zap.String("event_id", event.EventID),
 		zap.String("event_type", event.EventType),
 	)
-	Tx, _, err := h.service.GetTransaction(event.TransactionID)
+
+	// Fetch transaction
+	tx, _, err := h.service.GetTransaction(event.TransactionID)
 	if err != nil {
-		logger.Log.Error("TRANSACTION_NOT_FOUND_FOR_EVENT",
+		logger.Log.Error(
+			"TRANSACTION_NOT_FOUND_FOR_EVENT",
 			zap.String("event_id", event.EventID),
 			zap.String("tx_id", event.TransactionID),
 		)
 		return
 	}
-	h.service.RecordSagaStep(Tx, string(sagaStep), domain.SagaStatusCompleted)
-	h.service.UpdateTransactionWithSaga(Tx, txStatus, string(sagaStep)+"_"+domain.SagaStatusCompleted)
-	if txStatus != "COMPLETED" {
-		go h.event.PublishToAccountService(Tx, string(txStatus), topic, context.Background())
-		us := string(nextSagaState) + "." + domain.SagaStatusInProgress
-		h.service.UpdateTransactionWithSaga(Tx, nextState, us)
-		go h.service.RecordSagaStep(Tx, string(nextSagaState), domain.SagaStatusInProgress)
+
+	// Complete current saga step
+	h.service.RecordSagaStep(tx, string(sagaStep), domain.SagaStatusCompleted)
+	h.service.UpdateTransactionWithSaga(
+		tx,
+		txStatus,
+		string(sagaStep)+"_"+domain.SagaStatusCompleted,
+	)
+
+	// Publish event
+	go h.event.PublishToAccountService(tx, string(txStatus), topic, context.Background())
+
+	// Prepare next saga state
+	var sagaStatus string
+	var updateState string
+	if txStatus == "COMPLETED" {
+		sagaStatus = domain.SagaStatusCompleted
+		tx.Status = "COMPLETED"
+		updateState = "DONE"
+
 	} else {
-		go h.event.PublishToAccountService(Tx, string(txStatus), topic, context.Background())
-		us := string(nextSagaState) + "." + domain.SagaStatusCompleted
-		h.service.UpdateTransactionWithSaga(Tx, nextState, us)
-		go h.service.RecordSagaStep(Tx, string(nextSagaState), domain.SagaStatusCompleted)
+		sagaStatus = domain.SagaStatusInProgress
+		updateState = string(nextSagaState) + "." + sagaStatus
 	}
 
+	h.service.UpdateTransactionWithSaga(tx, nextState, updateState)
+	go h.service.RecordSagaStep(tx, string(nextSagaState), sagaStatus)
 }

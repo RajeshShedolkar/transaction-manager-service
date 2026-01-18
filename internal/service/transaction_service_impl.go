@@ -195,7 +195,7 @@ func (s *TransactionServiceImpl) UpdateSagaStatus(txID, status string) {
 }
 
 func (s *TransactionServiceImpl) UpdateTransactionWithSaga(txID *domain.Transaction, status domain.TransactionStatus, sagaCurrState string) error {
-	logger.Log.Info("^^^^^^^^^^^^^^^^^^^^UPDATING_TRANSACTION_WITH_SAGA", zap.String("transaction_id", txID.ID), zap.String("new_status", string(status)), zap.String("saga_state", sagaCurrState))
+	logger.Log.Info("UPDATING_TRANSACTION_WITH_SAGA", zap.String("transaction_id", txID.ID), zap.String("new_status", string(status)), zap.String("saga_state", sagaCurrState))
 	err := s.txRepo.UpdateStatusWithSaga(txID.ID, status, sagaCurrState)
 	if err != nil {
 		logger.Log.Error("UPDATING_TRANSACTION_WITH_SAGA_FAILED", zap.Error(err))
