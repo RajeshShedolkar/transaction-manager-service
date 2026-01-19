@@ -100,6 +100,7 @@ def payment_network():
         # Demo logic
         if channel == "IMPS":
             outcome = "SUCCESS"
+            outcome = "FAIL"
         else:
             outcome = random.choice(["SUCCESS", "FAIL"])
 

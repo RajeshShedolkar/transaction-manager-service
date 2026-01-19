@@ -26,6 +26,8 @@ const (
 	LedgerRefund     LedgerEntryType = "REFUND"          // user-visible refund
 	LedgerFinalized  LedgerEntryType = "FINALIZED"
 	LedgerHoldPlaced LedgerEntryType = "HOLD_PLACED"
+	LedgerNetworkFailed LedgerEntryType = "NETWORK_FAILED"
+	LedgerReleaseInProgress    LedgerEntryType = "HOLD"
 )
 
 type LedgerEntry struct {
