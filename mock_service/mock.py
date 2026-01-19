@@ -20,9 +20,7 @@ def consumer(topic, group):
         bootstrap_servers=BROKER,
         group_id=group,
         auto_offset_reset="earliest",
-        value_deserializer=lambda v: json.loads(v.decode("utf-8")),
-        enable_auto_commit=True,
-        
+        value_deserializer=lambda v: json.loads(v.decode("utf-8"))
     )
 
 # ---------------- Flask (health only) ----------------
@@ -94,15 +92,14 @@ def payment_network():
         # EXPECTED STATUS
         # T=NETWORK_REQUESTED, S=IMPS_DEBIT(IN_PROGRESS)
         print("[NETWORK] DEBIT REQ:", data)
+
         time.sleep(1)
-        
 
         channel = data.get("channel", "IMPS")
 
         # Demo logic
         if channel == "IMPS":
             outcome = "SUCCESS"
-            # outcome = "FAIL"
         else:
             outcome = random.choice(["SUCCESS", "FAIL"])
 

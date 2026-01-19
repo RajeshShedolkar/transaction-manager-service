@@ -59,11 +59,9 @@ func main() {
 	r.POST("/api/v1/transactions", handler.CreateTransaction)
 	r.GET("/api/v1/transactions/:id", handler.GetTransaction)
 
-	//kafka producer
-	events.InitKafkaTopics()
-
 	// ---------- Kafka Consumer ----------
 	api.StartConsumers(handler, eventRepo, eventHandler)
+	api.StartNEFTConsumers(handler, eventRepo, eventHandler)
 	logger.Log.Info("Kafka idempotent consumer started")
 
 	// ---------- Start HTTP ----------
