@@ -145,11 +145,14 @@ var TransactionStatusToLedger = map[TransactionStatus]LedgerEntryType{
 	StatusUPIFailed:  LedgerReversal,
 	StatusCardFailed: LedgerReversal,
 
-	StatusNetworkTimedOut:   LedgerRelease,
-	StatusFinalDebitFromAcc: LedgerHoldPlaced,
-	StatusNetworkFailed:     LedgerFinalized,
-	StatusIMPSCompleted:     LedgerFinalized,
-	StatusNEFTCompleted:     LedgerFinalized,
+	StatusNetworkTimedOut:    LedgerRelease,
+	StatusFinalDebitFromAcc:  LedgerHoldPlaced,
+	StatusNetworkFailed:      LedgerFinalized,
+	StatusIMPSCompleted:      LedgerFinalized,
+	StatusNEFTCompleted:      LedgerFinalized,
+	StatusNetworkDebitFailed: LedgerReleaseInProgress,
+	//StatusNetworkTimedOut: LedgerNetworkFailed,
+
 }
 
 const (
