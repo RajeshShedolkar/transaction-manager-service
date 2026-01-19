@@ -1,148 +1,174 @@
-IMPS SUCCESS FLOW (Happy Path)
-Customer sends IMPS transfer:
- - Customer sends IMPS transfer:
-  
-STEP 1 — API Gateway → TM
-Gateway calls TM API:
- - POST /transactions
+# IMPS Transaction Flow
 
-STEP 2 — TM creates initial state
-TM does:
-transactions table
-id	status	saga_status
-TX100	INITIATED	STARTED
+This document describes the **IMPS payment transaction flow** from a user and system orchestration perspective using an event-driven Saga pattern.
 
-saga_steps
-step	status
-START	DONE
+---
 
-no ledger yet
------------------
-STEP 3 — TM emits first Saga Command
+## 📌 Overview
 
-TM publishes Kafka command:
-{
-  "command": "DEBIT_ACCOUNT",
-  "transactionId": "TX100",
-  "accountRefId": "ACC1",
-  "amount": 1000
-}
+IMPS transactions are processed using an **event-driven orchestration model** involving:
 
-TM also saves:
-saga_steps
-step	status
-DEBIT_REQUESTED	REQUESTED
+* Transaction Manager (TM)
+* Account Service
+* Payment Network (IMPS / NPCI)
+* Ledger Service
 
---------------
-STEP 4 — Account Service consumes command
+Each step maintains:
 
-Kafka consumer in Account Service picks:
+* **T** → Transaction Status
+* **S** → Saga Step / Saga Status
+* **L** → Ledger Status
 
-DEBIT_ACCOUNT
+---
 
+## 🖼 IMPS Flow Diagram
 
-Account Service:
+![IMPS Flow](./static/img/imps-flow.png)
 
-• checks balance
-• deducts money
-• updates its DB
+> The above diagram represents the complete IMPS lifecycle from user request to ledger finalization.
 
-Then emits event.
--------------------
-STEP 5 — Account Service emits event
-Topic: tm.events
-{
-  "event": "ACCOUNT_DEBITED",
-  "transactionId": "TX100",
-  "accountRefId": "ACC1",
-  "amount": 1000
-}
+---
 
-----------------------
-STEP 6 — TM consumes debit event
+## 🔁 Step-by-Step Flow
 
-TM Kafka consumer picks this event.
+### 1. User Initiates Transfer
 
-TM now:
+* **T** = INITIATED
+* **S** = INIT
+* **L** = NONE
 
-saga_steps
-step	status
-DEBIT_REQUESTED	DONE
+TM receives the HTTP IMPS request.
 
-ledger_entries
-account	D/C	amount
-ACC1	D	1000
+---
 
-transactions
-status
-IN_PROGRESS
+### 2. Balance Block Request
 
------------
-STEP 7 — TM emits CREDIT command
+TM emits:
 
-TM publishes:
-{
-  "command": "CREDIT_ACCOUNT",
-  "transactionId": "TX100",
-  "accountRefId": "ACC2",
-  "amount": 1000
-}
+```
+account.commands.balance-block
+```
 
-Saga step:
-step	status
-CREDIT_REQUESTED	REQUESTED
-----------------
-STEP 8 — Account Service credits
+* **T** = BLOCK_REQUESTED
+* **S** = BALANCE_BLOCK (IN_PROGRESS)
+* **L** = NONE
 
-Account Service processes and emits:
-{
-  "event": "ACCOUNT_CREDITED",
-  "transactionId": "TX100",
-  "accountRefId": "ACC2",
-  "amount": 1000
-}
+---
 
+### 3. Balance Blocked
 
----------------------------
-STEP 9 — TM consumes credit event
+Account Service emits:
 
-TM does:
+```
+account.events.balance-blocked
+```
 
-saga_steps
-step	status
-CREDIT_REQUESTED	DONE
+* **T** = BLOCKED
+* **S** = BALANCE_BLOCK (COMPLETED)
+* **L** = AUTH_HOLD
 
-ledger_entries
-account	D/C	amount
-ACC2	C	1000
+---
 
+### 4. Network Debit Request
 
-transactions
-status	saga_status
-COMPLETED	COMPLETED
+TM emits:
 
+```
+payment.commands.debit (channel=IMPS)
+```
 
+* **T** = NETWORK_REQUESTED
+* **S** = IMPS_DEBIT (IN_PROGRESS)
+* **L** = AUTH_HOLD
 
-curl -X POST http://localhost:8080/api/v1/transactions \
--H "Content-Type: application/json" \
--d '{
-  "paymentType":"IMMEDIATE",
-  "paymentMode":"IMPS",
-  "amount":2000,
-  "currency":"INR"
-}'
+---
 
+### 5. NPCI Processing
 
-IMMEDATE IMPS request:
-{
-  "userRefId": "USR2001",
-  "sourceRefId": "ACC-USR2001-01",
-  "destinationRefId": "BANK",
-  "paymentType": "IMMEDATE",
-  "paymentMode": "IMPS",
-  "dcFlag": "D",
-  "amount": 2500,
-  "currency": "INR",
-  "networkTxnId": "",
-  "gatewayTxnId": "BNK-GTWY-TX01"
-}
+IMPS Network emits:
+
+* `payment.events.debit-success`
+* or `payment.events.debit-failed / timeout`
+
+Success:
+
+* **S** = IMPS_DEBIT (COMPLETED)
+
+Failure:
+
+* **S** = IMPS_DEBIT (FAILED)
+
+Ledger remains on hold.
+
+---
+
+### 6. Success Path
+
+TM emits:
+
+```
+account.commands.final-debit
+```
+
+Account Service emits:
+
+```
+account.events.balance-debited
+```
+
+* **T** = COMPLETED
+* **S** = FINAL_DEBIT (COMPLETED)
+* **L** = DEBIT + SETTLEMENT
+
+Ledger records debit.
+
+---
+
+### 7. Failure Path
+
+TM emits:
+
+```
+account.commands.release-hold
+```
+
+Account Service emits:
+
+```
+account.events.balance-released
+```
+
+* **T** = FAILED
+* **S** = RELEASE (COMPLETED)
+* **L** = RELEASE
+
+Ledger records reversal.
+
+---
+
+### 8. Final Event
+
+TM emits:
+
+```
+imps.events.transaction-final
+```
+
+* **T** = COMPLETED / FAILED
+* **S** = COMPLETED / FAILED
+* **L** = FINALIZED
+
+This event is consumed by downstream systems like notifications, reconciliation, and reporting.
+
+---
+
+## Key Design Principles
+
+* Saga orchestrates business flow
+* Ledger reflects accounting truth
+* Compensation is mandatory on failure
+* Saga is completed only after ledger safety
+* Events are immutable and idempotent
+
+---
+
