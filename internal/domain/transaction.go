@@ -33,6 +33,7 @@ const (
 	StatusCompensation       TransactionStatus = "FINALIZED"
 	StatusNetworkFailed      TransactionStatus = "TXN_FAILED"
 	StatusIMPSCompleted      TransactionStatus = "IMPS_TXN_COMLETED"
+	StatusNEFTCompleted      TransactionStatus = "NEFT_TXN_COMLETED"
 )
 
 type Transaction struct {
@@ -148,6 +149,7 @@ var TransactionStatusToLedger = map[TransactionStatus]LedgerEntryType{
 	StatusFinalDebitFromAcc: LedgerHoldPlaced,
 	StatusNetworkFailed:     LedgerFinalized,
 	StatusIMPSCompleted:     LedgerFinalized,
+	StatusNEFTCompleted:     LedgerFinalized,
 }
 
 const (

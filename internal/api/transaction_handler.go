@@ -58,11 +58,13 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 
 	var err error
 	log.Info("BUSINESS_LOGIC_STARTED")
-
+	var topic string
 	if req.PaymentMode == "NEFT" {
 		err = h.service.CreateNEFTTransaction(tx)
+		topic = config.KafkaPaymentNEFTDebitCmd
 	} else {
 		err = h.service.CreateImmediateTransaction(tx)
+		topic = config.KafkaAccountBalanceBlockCmd
 	}
 
 	if err != nil {
@@ -76,7 +78,7 @@ func (h *TransactionHandler) CreateTransaction(c *gin.Context) {
 
 	// emit event to account service to request balance block
 
-	go h.event.PublishToAccountService(tx, string(domain.StatusBlockRequested), config.KafkaAccountBalanceBlockCmd, context.Background())
+	go h.event.PublishToAccountService(tx, string(domain.StatusBlockRequested), topic, context.Background())
 	tx.Status = domain.StatusBlockRequested
 	h.service.RecordSagaStep(tx, string(domain.SagaBalanceBlocked), domain.SagaStatusInProgress)
 	// DEBIT_REQUESTED	REQUESTED

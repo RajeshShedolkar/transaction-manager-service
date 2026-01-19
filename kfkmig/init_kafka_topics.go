@@ -1,14 +1,11 @@
-package events
+package kfkmig
 
 import (
 	"transaction-manager/internal/config"
-	"transaction-manager/pkg/logger"
 
 	"context"
 	"fmt"
 	"time"
-
-	"go.uber.org/zap"
 
 	"github.com/IBM/sarama"
 )
@@ -78,6 +75,8 @@ func (k *KafkaAdmin) EnsureTopic(
 		return fmt.Errorf("create topic %s failed: %w", topic, err)
 	}
 
+	fmt.Println("Process of Kafka Topic Creation Completed...")
+
 	return nil
 }
 
@@ -86,13 +85,14 @@ func stringPtr(v string) *string {
 	return &v
 }
 
-func bootstrapKafkaTopics() error {
+func BootstrapKafkaTopics() error {
 	admin, err := NewKafkaAdmin([]string{"kafka:9092"})
 	if err != nil {
 		return err
 	}
+	var AllPaymentTopics = append(config.AllIMPSTopics, config.AllNEFTTopics...)
 
-	for _, topic := range config.AllIMPSTopics {
+	for _, topic := range AllPaymentTopics {
 		err := admin.EnsureTopic(topic, 3, 1)
 		if err != nil {
 			return err
@@ -102,26 +102,30 @@ func bootstrapKafkaTopics() error {
 	return nil
 }
 
-func InitKafkaTopics() {
-	brokers := config.KAFKA_BROKERS
-	acc_err := CreateTopicIfNotExists(brokers[0], config.KAFKA_ACCOUNT_TOPIC)
-	if acc_err != nil {
-		logger.Log.Fatal("Failed to create Kafka topic", zap.Error(acc_err))
-	} else {
-		logger.Log.Info("Kafka topic ensured", zap.String("topic", config.KAFKA_ACCOUNT_TOPIC))
-	}
+// func InitKafkaTopics() {
+// 	brokers := config.KAFKA_BROKERS
+// 	acc_err := CreateTopicIfNotExists(brokers[0], config.KAFKA_ACCOUNT_TOPIC)
+// 	if acc_err != nil {
+// 		logger.Log.Fatal("Failed to create Kafka topic", zap.Error(acc_err))
+// 	} else {
+// 		logger.Log.Info("Kafka topic ensured", zap.String("topic", config.KAFKA_ACCOUNT_TOPIC))
+// 	}
 
-	dlq_err := CreateTopicIfNotExists(brokers[0], config.KAFKA_DLQ_TOPIC)
-	if dlq_err != nil {
-		logger.Log.Fatal("Failed to create Kafka topic", zap.Error(dlq_err))
-	} else {
-		logger.Log.Info("Kafka topic ensured", zap.String("topic", config.KAFKA_DLQ_TOPIC))
-	}
+// 	dlq_err := CreateTopicIfNotExists(brokers[0], config.KAFKA_DLQ_TOPIC)
+// 	if dlq_err != nil {
+// 		logger.Log.Fatal("Failed to create Kafka topic", zap.Error(dlq_err))
+// 	} else {
+// 		logger.Log.Info("Kafka topic ensured", zap.String("topic", config.KAFKA_DLQ_TOPIC))
+// 	}
 
-	card_err := CreateTopicIfNotExists(brokers[0], config.KAFKA_CARD_EVENT_TOPIC)
-	if card_err != nil {
-		logger.Log.Fatal("Failed to create Kafka topic", zap.Error(card_err))
-	} else {
-		logger.Log.Info("Kafka topic ensured", zap.String("topic", config.KAFKA_CARD_EVENT_TOPIC))
-	}
+// 	card_err := CreateTopicIfNotExists(brokers[0], config.KAFKA_CARD_EVENT_TOPIC)
+// 	if card_err != nil {
+// 		logger.Log.Fatal("Failed to create Kafka topic", zap.Error(card_err))
+// 	} else {
+// 		logger.Log.Info("Kafka topic ensured", zap.String("topic", config.KAFKA_CARD_EVENT_TOPIC))
+// 	}
+// }
+
+func main(){
+	
 }
